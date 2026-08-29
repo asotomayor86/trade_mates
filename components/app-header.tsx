@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { MobileNav } from "@/components/mobile-nav";
 
-const enlaces = [{ href: "/dashboard", label: "Mercados" }];
+const enlaces = [
+  { href: "/dashboard", label: "Snapshot" },
+  { href: "/alertas", label: "Alertas" },
+];
 
 /**
  * Cabecera del área protegida — mismo lenguaje visual que el Nav del hub de

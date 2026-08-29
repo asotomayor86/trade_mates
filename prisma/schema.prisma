@@ -28,6 +28,9 @@ model User {
 
   invitationsSent Invitation[] @relation("InvitationCreator")
   invitationUsed  Invitation?  @relation("InvitationAccepted")
+
+  alertsCreated Alert[]     @relation("AlertCreator")
+  alertsSeen    AlertSeen[]
 }
 
 // Invitación de un solo uso: el admin la crea con un rol asignado, comparte
@@ -55,4 +58,54 @@ model Invitation {
   createdAt DateTime @default(now())
 
   @@index([createdById])
+}
+
+enum AlertVerdict {
+  CIERTA
+  INCIERTA
+}
+
+// Alerta de mercado: alguien sube una captura de Snapshot con un comentario
+// avisando de lo que está viendo. Queda "pendiente" hasta reviewAt (plazo
+// que el propio creador fija al crearla), momento en que él mismo valora si
+// fue cierta o incierta. El "visto" es independiente por usuario (AlertSeen).
+model Alert {
+  id       String  @id @default(cuid())
+  imageUrl String
+  comment  String  @db.Text
+
+  // Plazo de autorrevisión: lo decide el creador al crear la alerta.
+  reviewAt DateTime
+
+  // Null hasta que el creador la revisa; puede ponerse antes o después de
+  // reviewAt, no hay imposición estricta del servidor sobre el momento.
+  verdict   AlertVerdict?
+  verdictAt DateTime?
+
+  // Opcional + SetNull: si se borra el creador, la alerta sobrevive como
+  // registro — mismo criterio que en Invitation.
+  createdById String?
+  createdBy   User?   @relation("AlertCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  seenBy AlertSeen[]
+
+  @@index([createdById])
+  @@index([createdAt])
+}
+
+// Marca de "visto" manual, por usuario — cada quien lleva su propio control
+// de qué alertas ya ha revisado, independiente de si el creador ya dio
+// veredicto.
+model AlertSeen {
+  id      String @id @default(cuid())
+  alertId String
+  alert   Alert  @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  seenAt DateTime @default(now())
+
+  @@unique([alertId, userId])
 }

@@ -1,0 +1,118 @@
+"use server";
+
+import { z } from "zod";
+import { put } from "@vercel/blob";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+
+import { prisma } from "@/lib/prisma";
+import { requireSession } from "@/lib/auth-helpers";
+import { REVIEW_OPTIONS } from "@/lib/alert-options";
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
+
+const VALID_REVIEW_MINUTES = REVIEW_OPTIONS.map((o) => o.minutes);
+
+const reviewMinutesSchema = z
+  .string()
+  .transform(Number)
+  .refine((n) => VALID_REVIEW_MINUTES.includes(n as (typeof VALID_REVIEW_MINUTES)[number]));
+
+const commentSchema = z.string().min(1, "Escribe un comentario").max(4000);
+
+/** Crea una alerta: sube la imagen a Vercel Blob y guarda el registro. */
+export async function createAlert(_prev: string | null, formData: FormData): Promise<string | null> {
+  const session = await requireSession();
+
+  const image = formData.get("image");
+  if (!(image instanceof File) || image.size === 0) {
+    return "Selecciona una imagen";
+  }
+  if (!image.type.startsWith("image/")) {
+    return "El archivo debe ser una imagen";
+  }
+  if (image.size > MAX_IMAGE_BYTES) {
+    return "La imagen no puede superar 5MB";
+  }
+
+  const comment = commentSchema.safeParse(formData.get("comment"));
+  if (!comment.success) {
+    return comment.error.issues[0]?.message ?? "Comentario inválido";
+  }
+
+  const reviewMinutes = reviewMinutesSchema.safeParse(formData.get("reviewMinutes"));
+  if (!reviewMinutes.success) {
+    return "Plazo de revisión inválido";
+  }
+
+  let blobUrl: string;
+  try {
+    const blob = await put(`alertas/${session.user.id}-${Date.now()}-${image.name}`, image, {
+      access: "public",
+      addRandomSuffix: true,
+    });
+    blobUrl = blob.url;
+  } catch {
+    return "No se pudo subir la imagen. ¿Está configurado el almacenamiento de Vercel Blob?";
+  }
+
+  const reviewAt = new Date(Date.now() + reviewMinutes.data * 60_000);
+
+  await prisma.alert.create({
+    data: {
+      imageUrl: blobUrl,
+      comment: comment.data,
+      reviewAt,
+      createdById: session.user.id,
+    },
+  });
+
+  revalidatePath("/alertas");
+  redirect("/alertas");
+}
+
+/** Alterna la marca de "visto" del usuario actual para una alerta. */
+export async function toggleSeen(alertId: string) {
+  const session = await requireSession();
+
+  const existing = await prisma.alertSeen.findUnique({
+    where: { alertId_userId: { alertId, userId: session.user.id } },
+  });
+
+  if (existing) {
+    await prisma.alertSeen.delete({ where: { id: existing.id } });
+  } else {
+    await prisma.alertSeen.create({
+      data: { alertId, userId: session.user.id },
+    });
+  }
+
+  revalidatePath("/alertas");
+  revalidatePath(`/alertas/${alertId}`);
+}
+
+const verdictSchema = z.enum(["CIERTA", "INCIERTA"]);
+
+/** El creador (o un admin) valora si la alerta fue cierta o incierta. */
+export async function setVerdict(alertId: string, verdictInput: string) {
+  const session = await requireSession();
+
+  const parsed = verdictSchema.safeParse(verdictInput);
+  if (!parsed.success) throw new Error("Veredicto inválido");
+
+  const alert = await prisma.alert.findUnique({ where: { id: alertId } });
+  if (!alert) throw new Error("Alerta no encontrada");
+
+  const isOwner = alert.createdById === session.user.id;
+  if (!isOwner && session.user.role !== "ADMIN") {
+    throw new Error("Solo quien creó la alerta puede valorarla");
+  }
+
+  await prisma.alert.update({
+    where: { id: alertId },
+    data: { verdict: parsed.data, verdictAt: new Date() },
+  });
+
+  revalidatePath("/alertas");
+  revalidatePath(`/alertas/${alertId}`);
+}
