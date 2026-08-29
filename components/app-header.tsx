@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { LineChart } from "lucide-react";
 
 import { logout } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 
 const enlaces = [{ href: "/dashboard", label: "Mercados" }];
 
@@ -27,9 +27,8 @@ export function AppHeader({
   return (
     <header className="glass sticky top-0 z-10 border-x-0 border-t-0">
       <div className="mx-auto flex h-14 max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-4">
-        <Link href="/dashboard" className="flex items-center gap-2 font-bold">
-          <LineChart className="size-6 text-[var(--acento)]" />
-          Trade Mates
+        <Link href="/dashboard" aria-label="trademates">
+          <Logo withTagline={false} className="h-9 w-auto" />
         </Link>
 
         <nav className="flex items-center gap-1">

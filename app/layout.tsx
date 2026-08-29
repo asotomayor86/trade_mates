@@ -11,8 +11,8 @@ const barlow = Barlow_Semi_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: "Trade Mates",
-  description: "Gráficos e indicadores de mercado para el grupo.",
+  title: "trademates",
+  description: "trading en equipo — gráficos e indicadores de mercado para el grupo.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -7,7 +7,9 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  // La integración de Neon en Vercel usa este nombre para la conexión
+  // directa (sin pooling), no "DIRECT_URL".
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 enum Role {
