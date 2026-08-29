@@ -43,3 +43,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# archivos locales de la sesión de Claude Code (no del proyecto)
+.claude/

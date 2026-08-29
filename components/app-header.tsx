@@ -3,15 +3,16 @@ import Link from "next/link";
 import { logout } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
+import { MobileNav } from "@/components/mobile-nav";
 
 const enlaces = [{ href: "/dashboard", label: "Mercados" }];
 
 /**
  * Cabecera del área protegida — mismo lenguaje visual que el Nav del hub de
- * juegos: barra "glass" fija arriba, wordmark con icono a la izquierda,
- * enlaces, nombre de usuario y "Salir" a la derecha. Sin drawer móvil
- * todavía: con uno o dos enlaces cabe bien envolviendo con flex-wrap: se
- * añadirá cuando la navegación crezca (Fase 3, panel admin).
+ * juegos: barra "glass" fija arriba, wordmark con icono a la izquierda.
+ * A partir de `sm` (640px), enlaces/usuario/logout en línea a la derecha;
+ * por debajo, se sustituyen por un menú desplegable (hamburguesa) — mismo
+ * patrón que el drawer móvil de su Nav.
  */
 export function AppHeader({
   displayName,
@@ -25,13 +26,13 @@ export function AppHeader({
     : enlaces;
 
   return (
-    <header className="glass sticky top-0 z-10 border-x-0 border-t-0">
-      <div className="mx-auto flex h-14 max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-4">
-        <Link href="/dashboard" aria-label="trademates">
-          <Logo withTagline={false} className="h-9 w-auto" />
+    <header className="glass sticky top-0 z-10 relative border-x-0 border-t-0">
+      <div className="mx-auto flex h-16 max-w-5xl items-center gap-x-4 px-4">
+        <Link href="/dashboard" aria-label="trademates" className="flex items-center">
+          <Logo withTagline={false} className="h-[40px] w-auto" />
         </Link>
 
-        <nav className="flex items-center gap-1">
+        <nav className="hidden translate-y-[5px] items-center gap-1 sm:flex">
           {items.map((item) => (
             <Link
               key={item.href}
@@ -43,7 +44,7 @@ export function AppHeader({
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto hidden translate-y-[5px] items-center gap-3 sm:flex">
           <span className="max-w-[10rem] truncate text-sm text-muted-foreground">
             {displayName}
           </span>
@@ -53,6 +54,8 @@ export function AppHeader({
             </Button>
           </form>
         </div>
+
+        <MobileNav items={items} displayName={displayName} />
       </div>
     </header>
   );

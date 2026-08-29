@@ -18,9 +18,16 @@ export function Logo({
   className?: string;
   withTagline?: boolean;
 }) {
+  // Recorte exacto (medido con getBBox sobre el render real, fuente
+  // cargada): antes calculábamos esto a mano y colamos por error el rango
+  // vertical de la píldora "tm" del icono original, que este componente ni
+  // siquiera dibuja — dejaba un hueco vacío debajo que desalineaba el logo
+  // respecto al resto de la cabecera.
+  const viewBox = withTagline ? "137.8 25.6 421.4 109.4" : "137.8 25.6 421.4 98.4";
+
   return (
     <svg
-      viewBox="0 10 680 180"
+      viewBox={viewBox}
       className={className}
       role="img"
       aria-label="trademates — trading en equipo"
