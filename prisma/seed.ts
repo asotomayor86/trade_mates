@@ -3,12 +3,21 @@ import { hashPassword } from "../lib/password";
 
 const prisma = new PrismaClient();
 
+// Vercel puede dejar estas variables declaradas pero VACÍAS (p. ej. si se
+// crearon como plantilla al importar el proyecto sin rellenarlas) — "??"
+// no las trata como "sin definir" porque "" no es null/undefined. Un
+// admin con usuario o contraseña vacíos es un fallo de seguridad real, así
+// que aquí una cadena vacía cuenta como "no puesta".
+function envOrDefault(value: string | undefined, fallback: string) {
+  return value && value.trim() !== "" ? value : fallback;
+}
+
 // create-only: si el admin ya existe, no lo toca (idempotente entre
 // despliegues) — mismo criterio que el resto del stack de referencia.
 async function main() {
-  const username = process.env.SEED_ADMIN_USERNAME ?? "admin";
-  const password = process.env.SEED_ADMIN_PASSWORD ?? "changeme123";
-  const displayName = process.env.SEED_ADMIN_DISPLAYNAME ?? "Admin";
+  const username = envOrDefault(process.env.SEED_ADMIN_USERNAME, "admin");
+  const password = envOrDefault(process.env.SEED_ADMIN_PASSWORD, "changeme123");
+  const displayName = envOrDefault(process.env.SEED_ADMIN_DISPLAYNAME, "Admin");
 
   const existing = await prisma.user.findUnique({ where: { username } });
   if (existing) {

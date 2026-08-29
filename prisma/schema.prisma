@@ -40,8 +40,11 @@ model Invitation {
   expiresAt   DateTime?
   usedAt      DateTime?
 
-  createdById String
-  createdBy   User   @relation("InvitationCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  // Opcional + SetNull (no Cascade): si se borra el admin que la creó, la
+  // invitación sobrevive como registro — igual criterio que "user" abajo.
+  // Si estuviera pendiente (sin usar), seguiría siendo válida.
+  createdById String?
+  createdBy   User?   @relation("InvitationCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
   // Se rellena al aceptar la invitación; onDelete: SetNull para que la
   // invitación (como registro histórico de auditoría) sobreviva si el user
