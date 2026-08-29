@@ -19,7 +19,17 @@ interface TradingViewWidgetProps {
   height?: number | string;
   /** Indicadores precargados, en formato de estudio de TradingView. */
   studies?: string[];
+  /**
+   * Se dispara la primera vez que el símbolo mostrado dentro del widget deja
+   * de coincidir con el inicial (p. ej. el usuario lo cambió con la búsqueda
+   * propia del gráfico). El widget es un iframe de otro dominio — no hay
+   * acceso a su DOM, pero sí emite eventos `postMessage` con el símbolo
+   * actual en cada actualización de cotización, y de ahí lo detectamos.
+   */
+  onSymbolChange?: () => void;
 }
+
+const TRADINGVIEW_ORIGIN = "https://www.tradingview-widget.com";
 
 /**
  * Envuelve el widget "Advanced Real-Time Chart" embebido de TradingView.
@@ -35,9 +45,44 @@ function TradingViewWidget({
   theme = "dark",
   height = "100%",
   studies = DEFAULT_STUDIES,
+  onSymbolChange,
 }: TradingViewWidgetProps) {
   const container = useRef<HTMLDivElement>(null);
   const [loaded, setLoaded] = useState(false);
+
+  // Escucha los quoteUpdate del widget para detectar un cambio real de
+  // símbolo. Se resetea la referencia (baselineKey) cada vez que `symbol`
+  // cambia por props, para no confundir un remontaje nuestro con un cambio
+  // hecho por el usuario dentro del propio gráfico.
+  useEffect(() => {
+    const notify = onSymbolChange;
+    if (!notify) return;
+    let baselineKey: string | null = null;
+
+    function handleMessage(event: MessageEvent) {
+      if (event.origin !== TRADINGVIEW_ORIGIN) return;
+      let data: unknown = event.data;
+      try {
+        if (typeof data === "string") data = JSON.parse(data);
+      } catch {
+        return;
+      }
+      const payload = data as { name?: string; data?: { exchange?: string; short_name?: string } };
+      if (payload?.name !== "quoteUpdate") return;
+
+      const key = `${payload.data?.exchange ?? ""}:${payload.data?.short_name ?? ""}`;
+      if (baselineKey === null) {
+        baselineKey = key;
+        return;
+      }
+      // Ya comprobado no-undefined arriba (guard de "notify"); TS no
+      // conserva ese estrechamiento dentro de una función anidada.
+      if (key !== baselineKey) notify!();
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [symbol, onSymbolChange]);
 
   useEffect(() => {
     const el = container.current;
