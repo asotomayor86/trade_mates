@@ -1,0 +1,53 @@
+// Prisma 6 (no 7 — evita driver adapters y prisma.config.ts, innecesarios
+// para este proyecto). Mismo criterio que el resto del stack de referencia.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  // Null hasta que el invitado acepta su invitación y fija su propia clave.
+  passwordHash String?
+  displayName  String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+
+  invitationsSent Invitation[] @relation("InvitationCreator")
+  invitationUsed  Invitation?  @relation("InvitationAccepted")
+}
+
+// Invitación de un solo uso: el admin la crea con un rol asignado, comparte
+// el enlace a mano (fuera de la app, p. ej. WhatsApp), y el invitado la
+// consume una única vez para crear su cuenta y fijar su propia contraseña.
+model Invitation {
+  id          String    @id @default(cuid())
+  token       String    @unique
+  role        Role      @default(USER)
+  expiresAt   DateTime?
+  usedAt      DateTime?
+
+  createdById String
+  createdBy   User   @relation("InvitationCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  // Se rellena al aceptar la invitación; onDelete: SetNull para que la
+  // invitación (como registro histórico de auditoría) sobreviva si el user
+  // se borra más adelante.
+  userId String? @unique
+  user   User?   @relation("InvitationAccepted", fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([createdById])
+}
