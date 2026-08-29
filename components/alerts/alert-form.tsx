@@ -60,9 +60,21 @@ export function AlertForm() {
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="reviewMinutes">Revisar en</Label>
-        <Select name="reviewMinutes" defaultValue="60">
+        <Select name="reviewMinutes" defaultValue={String(REVIEW_OPTIONS[0].minutes)}>
           <SelectTrigger id="reviewMinutes" className="w-40">
-            <SelectValue />
+            {/*
+              SelectValue con children-función: por defecto resuelve la
+              etiqueta buscando el SelectItem ya montado, y como
+              SelectContent vive en un portal que no está montado hasta
+              abrirlo, en el render inicial caía al valor crudo (minutos).
+              Mapeamos la etiqueta nosotros mismos para que sea fiable
+              siempre, no solo tras abrir el desplegable una vez.
+            */}
+            <SelectValue>
+              {(value: string) =>
+                REVIEW_OPTIONS.find((o) => String(o.minutes) === value)?.label ?? value
+              }
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {REVIEW_OPTIONS.map((o) => (

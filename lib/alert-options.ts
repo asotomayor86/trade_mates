@@ -4,11 +4,15 @@
 // array) se rompe en tiempo de ejecución al importarlo desde un Client
 // Component, porque Next.js convierte todos sus exports en referencias de
 // server action.
+//
+// Periodos largos a propósito: la app es para ideas de swing/posición, no
+// intradía — de 3 días a 1 mes.
+const DIA = 24 * 60;
+
 export const REVIEW_OPTIONS = [
-  { minutes: 15, label: "15 minutos" },
-  { minutes: 30, label: "30 minutos" },
-  { minutes: 60, label: "1 hora" },
-  { minutes: 240, label: "4 horas" },
-  { minutes: 1440, label: "1 día" },
-  { minutes: 4320, label: "3 días" },
+  { minutes: 3 * DIA, label: "3 días" },
+  { minutes: 5 * DIA, label: "5 días" },
+  { minutes: 7 * DIA, label: "7 días" },
+  { minutes: 14 * DIA, label: "14 días" },
+  { minutes: 30 * DIA, label: "30 días" },
 ] as const;
