@@ -229,8 +229,13 @@ createdAt   DateTime                   createdAt   DateTime
   otro dominio (sin acceso a su DOM), pero emite eventos `postMessage`
   (`quoteUpdate`) con el símbolo actual en cada actualización de
   cotización — se compara contra el primero recibido para saber si el
-  usuario cambió de valor, y así ocultar el aviso del CFD. Ver
-  `components/charts/tradingview-widget.tsx`.
+  usuario cambió de valor. La prop `onSymbolChange` de
+  `components/charts/tradingview-widget.tsx` sigue ahí (funciona, está
+  verificado), pero Snapshot ya no la usa: se quitó la cabecera "Índice
+  S&P 500 / FOREXCOM · SPXUSD · Diario" y el aviso amarillo del CFD que la
+  usaban, por pedido explícito del usuario ("no tiene sentido"). Se deja
+  el mecanismo en el widget por si una futura función (p. ej. la
+  watchlist pendiente) necesita reaccionar a un cambio de símbolo.
 - **Vista de Alertas (`components/alerts/alerts-view.tsx`)**: selector
   Tarjetas/Lista (estado de cliente, no persistido) y separación en
   secciones "No vistas" / "Vistas" según `AlertSeen` del usuario actual —
