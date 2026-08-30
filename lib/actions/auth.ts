@@ -13,7 +13,7 @@ export async function authenticate(
     await signIn("credentials", {
       username: formData.get("username"),
       password: formData.get("password"),
-      redirectTo: "/dashboard",
+      redirectTo: "/",
     });
     return null;
   } catch (error) {

@@ -35,7 +35,7 @@ export function AppHeader({
   return (
     <header className="glass-header sticky top-0 z-10 relative border-x-0 border-t-0">
       <div className="mx-auto flex h-16 max-w-5xl items-center gap-x-4 px-4">
-        <Link href="/dashboard" aria-label="trademates" className="flex items-center">
+        <Link href="/" aria-label="trademates" className="flex items-center">
           <Logo withTagline={false} className="h-[40px] w-auto" />
         </Link>
 

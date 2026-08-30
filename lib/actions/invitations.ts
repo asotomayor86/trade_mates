@@ -118,7 +118,7 @@ export async function acceptInvitation(
     await signIn("credentials", {
       username: parsed.data.username,
       password: parsed.data.password,
-      redirectTo: "/dashboard",
+      redirectTo: "/",
     });
   } catch (error) {
     if (error instanceof AuthError) {

@@ -87,13 +87,14 @@ el propio código para el detalle de cada fase ya construida.
   hacía difícil de leer. Clase propia `.glass-header`, más opaca (92%),
   sin tocar `.glass` (las cards se quedan igual).
 - **Página de bienvenida** (`/`) — sustituye al redirect directo a
-  `/dashboard`: ahora es lo primero que se ve al entrar, con una tarjeta
-  por sección (Snapshot, Alertas, Playbook) explicando qué hace cada una y
-  un enlace directo. La tarjeta de Alertas incluye un vídeo real (grabado
-  contra la propia app en producción, no una maqueta) del recorrido
-  completo Snapshot → captura → Nueva alerta → publicar. "Inicio" al
-  principio del menú (antes de Snapshot) para poder volver a verla cuando
-  se quiera, no solo la primera vez que se entra.
+  `/dashboard`: ahora es lo primero que se ve al entrar (login, aceptar
+  invitación, PWA instalada), con una tarjeta por sección (Snapshot,
+  Alertas, Playbook) explicando qué hace cada una y un enlace directo. La
+  tarjeta de Alertas incluye un vídeo real (grabado contra la propia app
+  en producción, no una maqueta) del recorrido completo Snapshot →
+  captura → Nueva alerta → publicar. "Inicio" al principio del menú (antes
+  de Snapshot) y el logo de la cabecera llevan aquí también, para poder
+  volver cuando se quiera.
 - Logo e identidad de marca (trademates) en cabecera, login y favicon.
 - Desplegado en producción: https://trade-mates.vercel.app
 

@@ -30,10 +30,11 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Autenticado en login: mandar al dashboard. Las páginas de invitación
-  // siguen accesibles con sesión (p. ej. un admin comprobando el enlace).
+  // Autenticado en login: mandar a la página de inicio. Las páginas de
+  // invitación siguen accesibles con sesión (p. ej. un admin comprobando
+  // el enlace).
   if (path === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", nextUrl));
+    return NextResponse.redirect(new URL("/", nextUrl));
   }
 
   return NextResponse.next();

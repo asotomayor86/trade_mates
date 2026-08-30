@@ -10,7 +10,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "trademates",
     short_name: "trademates",
     description: "Trading en equipo: snapshots, alertas y playbook de estrategias para el grupo.",
-    start_url: "/dashboard",
+    start_url: "/",
     display: "standalone",
     background_color: "#0e0a1c",
     theme_color: "#0e0a1c",
