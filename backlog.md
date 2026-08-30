@@ -25,18 +25,17 @@ el propio código para el detalle de cada fase ya construida.
   alcista basado en soportes y resistencias"), con previsualización en
   vivo en el formulario. Listado con selector Tarjetas/Lista y separación
   en secciones "No vistas" / "Vistas".
+- **Alertas — veredicto solo del creador y bloqueado hasta el plazo** —
+  corregido: un admin que no creó la alerta ya no puede valorarla (antes
+  sí, por error); y ni siquiera el propio creador puede hacerlo antes de
+  que pase `reviewAt` — mientras tanto ve los botones en gris y una
+  cuenta atrás en vivo ("Podrás valorarla dentro de 2d 23h 57m"). También
+  reforzado en el servidor (`setVerdict`), no solo ocultando el botón.
 - Logo e identidad de marca (trademates) en cabecera, login y favicon.
 - Desplegado en producción: https://trade-mates.vercel.app
 
 ## Pendiente
 
-- **Bloquear el veredicto hasta que pase el plazo de revisión.** Ahora
-  mismo los botones "Cierta"/"Incierta" están activos desde el momento de
-  creación de la alerta. Falta: deshabilitarlos (mostrarlos en gris) hasta
-  que `reviewAt` haya pasado, y mientras tanto mostrar una cuenta atrás
-  ("faltan 2 días 4h") en vez del botón. Solo afecta a quien puede
-  valorar (el creador, o un admin) — el resto de usuarios no ve botones de
-  veredicto de todos modos.
 - Cambiar la contraseña por defecto del admin en producción
   (`admin`/`changeme123`) — sigue siendo la de la siembra inicial.
 - Sin pantalla de "cambiar mi contraseña" ni de "resetear la contraseña de

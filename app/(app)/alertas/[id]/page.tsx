@@ -7,7 +7,8 @@ import { StatusBadge } from "@/components/alerts/status-badge";
 import { SeenToggle } from "@/components/alerts/seen-toggle";
 import { SentidoBadge } from "@/components/alerts/sentido-badge";
 import { VerdictButtons } from "@/components/alerts/verdict-buttons";
-import { shortDateTime } from "@/lib/format-date";
+import { ReviewCountdown } from "@/components/alerts/review-countdown";
+import { shortDateTime, isPast } from "@/lib/format-date";
 import { composeAlertTitle } from "@/lib/alert-options";
 
 export const dynamic = "force-dynamic";
@@ -30,8 +31,11 @@ export default async function AlertaDetailPage(props: PageProps<"/alertas/[id]">
   if (!alert) notFound();
 
   const seenByMe = alert.seenBy.some((s) => s.userId === session.user.id);
+  // Solo quien creó la alerta la valora, ni siquiera un admin — es una
+  // autorrevisión personal, y solo cuando ha pasado su propio plazo.
   const isOwner = alert.createdById === session.user.id;
-  const canJudge = (isOwner || session.user.role === "ADMIN") && !alert.verdict;
+  const canJudge = isOwner && !alert.verdict;
+  const reviewDue = isPast(alert.reviewAt);
   const title = composeAlertTitle(alert.symbol, alert.sentido, alert.basadoEn);
 
   return (
@@ -68,7 +72,12 @@ export default async function AlertaDetailPage(props: PageProps<"/alertas/[id]">
             <SeenToggle alertId={alert.id} seen={seenByMe} />
           </div>
 
-          {canJudge && <VerdictButtons alertId={alert.id} />}
+          {canJudge &&
+            (reviewDue ? (
+              <VerdictButtons alertId={alert.id} />
+            ) : (
+              <ReviewCountdown reviewAt={alert.reviewAt} />
+            ))}
         </div>
       </Card>
     </div>

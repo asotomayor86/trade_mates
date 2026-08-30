@@ -114,7 +114,13 @@ export async function toggleSeen(alertId: string) {
 
 const verdictSchema = z.enum(["CIERTA", "INCIERTA"]);
 
-/** El creador (o un admin) valora si la alerta fue cierta o incierta. */
+/**
+ * Solo quien creó la alerta puede valorarla (ni siquiera un admin, a
+ * propósito: es una autorrevisión) y solo una vez ha pasado su propio plazo
+ * de revisión. Se comprueba aquí también, no solo ocultando el botón en el
+ * cliente — VerdictButtons ya no debería ser alcanzable en esas condiciones,
+ * pero esta acción es la que de verdad lo impide.
+ */
 export async function setVerdict(alertId: string, verdictInput: string) {
   const session = await requireSession();
 
@@ -124,9 +130,12 @@ export async function setVerdict(alertId: string, verdictInput: string) {
   const alert = await prisma.alert.findUnique({ where: { id: alertId } });
   if (!alert) throw new Error("Alerta no encontrada");
 
-  const isOwner = alert.createdById === session.user.id;
-  if (!isOwner && session.user.role !== "ADMIN") {
+  if (alert.createdById !== session.user.id) {
     throw new Error("Solo quien creó la alerta puede valorarla");
+  }
+
+  if (alert.reviewAt.getTime() > Date.now()) {
+    throw new Error("Todavía no ha pasado el plazo de revisión");
   }
 
   await prisma.alert.update({
