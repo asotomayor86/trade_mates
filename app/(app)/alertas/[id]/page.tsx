@@ -71,7 +71,7 @@ export default async function AlertaDetailPage(props: PageProps<"/alertas/[id]">
               {alert.seenBy.length > 0 &&
                 `: ${alert.seenBy.map((s) => s.user.displayName).join(", ")}`}
             </span>
-            <SeenToggle alertId={alert.id} seen={seenByMe} />
+            {!isOwner && <SeenToggle alertId={alert.id} seen={seenByMe} />}
           </div>
 
           {canJudge &&

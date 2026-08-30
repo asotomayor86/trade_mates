@@ -12,16 +12,24 @@ type ViewMode = "tarjetas" | "lista";
 
 /**
  * Página de Alertas: cabecera (título, selector tarjetas/lista y "Nueva
- * alerta" a la misma altura) y el listado separado en "No vistas" (primero,
- * requieren atención) y "Vistas". El selector solo tiene sentido si hay
- * alertas que mostrar, pero la cabecera con "Nueva alerta" siempre está.
+ * alerta" a la misma altura) y el listado en cuatro grupos: las de otros
+ * (por si las has visto o no, que es lo que importa para ellas) primero, y
+ * las mías al final (por si ya las he verificado o no — marcarme "visto" mi
+ * propia alerta no tiene sentido, así que ese estado no aplica aquí). El
+ * selector de vista solo tiene sentido si hay alertas que mostrar, pero la
+ * cabecera con "Nueva alerta" siempre está.
  */
 export function AlertsView({ alerts }: { alerts: AlertCardData[] }) {
   const [mode, setMode] = useState<ViewMode>("tarjetas");
   const hasAlerts = alerts.length > 0;
 
-  const noVistas = alerts.filter((a) => !a.seenByMe);
-  const vistas = alerts.filter((a) => a.seenByMe);
+  const deOtros = alerts.filter((a) => !a.isMine);
+  const mias = alerts.filter((a) => a.isMine);
+
+  const otrosNoVistas = deOtros.filter((a) => !a.seenByMe);
+  const otrosVistas = deOtros.filter((a) => a.seenByMe);
+  const miasNoVerificadas = mias.filter((a) => !a.verdict);
+  const miasVerificadas = mias.filter((a) => a.verdict);
 
   return (
     <div className="flex flex-col gap-6">
@@ -58,16 +66,28 @@ export function AlertsView({ alerts }: { alerts: AlertCardData[] }) {
       {hasAlerts ? (
         <>
           <AlertGroup
-            title="No vistas"
-            alerts={noVistas}
+            title="Otros · no vistas"
+            alerts={otrosNoVistas}
             mode={mode}
-            emptyText="No hay alertas pendientes de ver."
+            emptyText="No hay alertas de otros pendientes de ver."
           />
           <AlertGroup
-            title="Vistas"
-            alerts={vistas}
+            title="Otros · vistas"
+            alerts={otrosVistas}
             mode={mode}
-            emptyText="Todavía no has marcado ninguna alerta como vista."
+            emptyText="Todavía no has marcado ninguna alerta de otros como vista."
+          />
+          <AlertGroup
+            title="Mías · no verificadas"
+            alerts={miasNoVerificadas}
+            mode={mode}
+            emptyText="No tienes alertas propias pendientes de verificar."
+          />
+          <AlertGroup
+            title="Mías · verificadas"
+            alerts={miasVerificadas}
+            mode={mode}
+            emptyText="Todavía no has verificado ninguna alerta tuya."
           />
         </>
       ) : (

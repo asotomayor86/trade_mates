@@ -32,6 +32,7 @@ export default async function AlertasPage() {
     createdBy: a.createdBy,
     seenByMe: a.seenBy.length > 0,
     seenCount: a._count.seenBy,
+    isMine: a.createdById === session.user.id,
   }));
 
   return (

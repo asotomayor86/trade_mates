@@ -21,6 +21,9 @@ export type AlertCardData = {
   createdBy: { displayName: string } | null;
   seenByMe: boolean;
   seenCount: number;
+  // La ve el propio creador: sin sentido marcarse "visto" algo que uno mismo
+  // ha publicado, así que el botón de vista/no vista se oculta para él.
+  isMine: boolean;
 };
 
 export function AlertCard({ alert }: { alert: AlertCardData }) {
@@ -55,7 +58,7 @@ export function AlertCard({ alert }: { alert: AlertCardData }) {
           <span className="text-xs text-muted-foreground">
             Visto por {alert.seenCount}
           </span>
-          <SeenToggle alertId={alert.id} seen={alert.seenByMe} />
+          {!alert.isMine && <SeenToggle alertId={alert.id} seen={alert.seenByMe} />}
         </div>
       </div>
     </Card>

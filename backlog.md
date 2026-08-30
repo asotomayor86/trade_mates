@@ -34,6 +34,12 @@ el propio código para el detalle de cada fase ya construida.
   cualquier admin, puede eliminarla (con confirmación; borra también la
   imagen en Blob, best-effort). Selector Tarjetas/Lista movido a la misma
   fila que "Nueva alerta" (antes iba en una fila aparte).
+- **Alertas — cuatro grupos (de otros / mías)** — el listado separa las
+  alertas de otros (no vistas / vistas, que es lo que le importa a quien
+  las lee) de las propias (no verificadas / verificadas, que es lo que le
+  importa a quien las creó). El botón de marcar visto desaparece en las
+  alertas propias (para su creador; el resto de usuarios lo siguen viendo
+  con normalidad en sus propias alertas ajenas).
 - Logo e identidad de marca (trademates) en cabecera, login y favicon.
 - Desplegado en producción: https://trade-mates.vercel.app
 

@@ -40,7 +40,7 @@ export function AlertListItem({ alert }: { alert: AlertCardData }) {
 
         <div className="flex shrink-0 flex-col items-end gap-1.5">
           <StatusBadge verdict={alert.verdict} reviewAt={alert.reviewAt} />
-          <SeenToggle alertId={alert.id} seen={alert.seenByMe} />
+          {!alert.isMine && <SeenToggle alertId={alert.id} seen={alert.seenByMe} />}
         </div>
       </div>
     </Card>
