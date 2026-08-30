@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { LayoutGrid, List as ListIcon } from "lucide-react";
 
@@ -9,6 +9,23 @@ import { AlertCard, type AlertCardData } from "@/components/alerts/alert-card";
 import { AlertListItem } from "@/components/alerts/alert-list-item";
 
 type ViewMode = "tarjetas" | "lista";
+
+// Mismo corte que el menú hamburguesa de la cabecera (sm:640px). Vía
+// useSyncExternalStore en vez de useState+useEffect: evita setState
+// síncrono dentro de un efecto (react-hooks/set-state-in-effect) y de paso
+// reacciona a un resize real, no solo al valor inicial.
+const MOBILE_QUERY = "(max-width: 639px)";
+function subscribeToMobile(callback: () => void) {
+  const mq = window.matchMedia(MOBILE_QUERY);
+  mq.addEventListener("change", callback);
+  return () => mq.removeEventListener("change", callback);
+}
+function getIsMobileSnapshot() {
+  return window.matchMedia(MOBILE_QUERY).matches;
+}
+function getIsMobileServerSnapshot() {
+  return false; // SSR: escritorio por defecto, igual que el modo inicial "tarjetas".
+}
 
 /**
  * Página de Alertas: cabecera (título, selector tarjetas/lista y "Nueva
@@ -20,7 +37,16 @@ type ViewMode = "tarjetas" | "lista";
  * cabecera con "Nueva alerta" siempre está.
  */
 export function AlertsView({ alerts }: { alerts: AlertCardData[] }) {
-  const [mode, setMode] = useState<ViewMode>("tarjetas");
+  // null = el usuario no ha tocado el selector todavía: el modo por
+  // defecto sigue al ancho de pantalla (Lista en móvil, Tarjetas si no).
+  // En cuanto elige uno a mano, ese pasa a mandar y ya no se le pisa.
+  const [manualMode, setManualMode] = useState<ViewMode | null>(null);
+  const isMobile = useSyncExternalStore(
+    subscribeToMobile,
+    getIsMobileSnapshot,
+    getIsMobileServerSnapshot
+  );
+  const mode: ViewMode = manualMode ?? (isMobile ? "lista" : "tarjetas");
   const hasAlerts = alerts.length > 0;
 
   const deOtros = alerts.filter((a) => !a.isMine);
@@ -42,7 +68,7 @@ export function AlertsView({ alerts }: { alerts: AlertCardData[] }) {
                 type="button"
                 size="sm"
                 variant={mode === "tarjetas" ? "default" : "ghost"}
-                onClick={() => setMode("tarjetas")}
+                onClick={() => setManualMode("tarjetas")}
               >
                 <LayoutGrid className="size-4" /> Tarjetas
               </Button>
@@ -50,7 +76,7 @@ export function AlertsView({ alerts }: { alerts: AlertCardData[] }) {
                 type="button"
                 size="sm"
                 variant={mode === "lista" ? "default" : "ghost"}
-                onClick={() => setMode("lista")}
+                onClick={() => setManualMode("lista")}
               >
                 <ListIcon className="size-4" /> Lista
               </Button>

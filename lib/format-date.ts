@@ -1,17 +1,3 @@
-const RTF = new Intl.RelativeTimeFormat("es", { numeric: "auto" });
-
-/** "hace 3 horas" / "en 2 días" — sin dependencias externas. */
-export function relativeTime(date: Date) {
-  const diffMs = date.getTime() - Date.now();
-  const diffMin = Math.round(diffMs / 60_000);
-
-  if (Math.abs(diffMin) < 60) return RTF.format(diffMin, "minute");
-  const diffHours = Math.round(diffMin / 60);
-  if (Math.abs(diffHours) < 24) return RTF.format(diffHours, "hour");
-  const diffDays = Math.round(diffHours / 24);
-  return RTF.format(diffDays, "day");
-}
-
 export function isPast(date: Date) {
   return date.getTime() <= Date.now();
 }
@@ -34,6 +20,36 @@ export function formatCountdown(target: Date, from: number) {
   if (days > 0 || hours > 0) parts.push(`${hours}h`);
   parts.push(`${minutes}m`);
   return parts.join(" ");
+}
+
+function pluralize(n: number, singular: string, plural: string) {
+  return `${n} ${n === 1 ? singular : plural}`;
+}
+
+/**
+ * "6 días y 15 horas" / "3 horas y 20 minutos" / "12 minutos" — tiempo real
+ * que falta hasta `date`, con como mucho dos unidades de precisión (a
+ * diferencia de la antigua relativeTime, que redondeaba a una sola unidad
+ * y por eso "revisar en 7 días" se quedaba en "7 días" aunque en realidad
+ * quedaran 6 días y 15 horas).
+ */
+export function preciseRemaining(date: Date) {
+  const totalMinutes = Math.max(0, Math.round((date.getTime() - Date.now()) / 60_000));
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+
+  if (days > 0) {
+    return hours > 0
+      ? `${pluralize(days, "día", "días")} y ${pluralize(hours, "hora", "horas")}`
+      : pluralize(days, "día", "días");
+  }
+  if (hours > 0) {
+    return minutes > 0
+      ? `${pluralize(hours, "hora", "horas")} y ${pluralize(minutes, "minuto", "minutos")}`
+      : pluralize(hours, "hora", "horas");
+  }
+  return pluralize(minutes, "minuto", "minutos");
 }
 
 export function shortDateTime(date: Date) {

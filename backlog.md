@@ -40,6 +40,12 @@ el propio código para el detalle de cada fase ya construida.
   importa a quien las creó). El botón de marcar visto desaparece en las
   alertas propias (para su creador; el resto de usuarios lo siguen viendo
   con normalidad en sus propias alertas ajenas).
+- **Alertas — vista móvil y cuenta atrás precisa** — en pantallas <640px
+  el listado arranca en Lista en vez de Tarjetas (se puede cambiar a
+  mano). El badge "Revisar en…" ya no redondea a una sola unidad (antes
+  "Revisar dentro de 7 días" aunque solo quedasen 6 días y pico); ahora
+  muestra el tiempo real con dos unidades de precisión, p. ej. "Revisar
+  en 6 días y 15 horas".
 - Logo e identidad de marca (trademates) en cabecera, login y favicon.
 - Desplegado en producción: https://trade-mates.vercel.app
 

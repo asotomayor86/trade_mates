@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { relativeTime, isPast } from "@/lib/format-date";
+import { preciseRemaining, isPast } from "@/lib/format-date";
 
 type Props = {
   verdict: "CIERTA" | "INCIERTA" | null;
@@ -31,7 +31,7 @@ export function StatusBadge({ verdict, reviewAt }: Props) {
           : "bg-[var(--superficie-2)] text-muted-foreground"
       }
     >
-      {due ? "Lista para revisar" : `Revisar ${relativeTime(reviewAt)}`}
+      {due ? "Lista para revisar" : `Revisar en ${preciseRemaining(reviewAt)}`}
     </Badge>
   );
 }

@@ -80,7 +80,7 @@ trade_mates/
 │   ├── password.ts             # hash/verify, generateInvitationToken
 │   ├── auth-helpers.ts         # requireSession / requireAdmin
 │   ├── alert-options.ts        # REVIEW_OPTIONS (fuera de actions/, ver nota)
-│   ├── format-date.ts          # relativeTime, isPast, shortDateTime
+│   ├── format-date.ts          # isPast, preciseRemaining, shortDateTime
 │   └── actions/                # server actions: auth, invitations, users, alerts
 ├── types/next-auth.d.ts        # augmentación de sesión/JWT
 ├── auth.config.ts              # edge-safe (sin Prisma/bcrypt), para proxy.ts
