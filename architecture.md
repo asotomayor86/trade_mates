@@ -325,6 +325,31 @@ createdAt   DateTime                   description      String (@db.Text)
 - **Prisma 6, no 7** (evita *driver adapters* y `prisma.config.ts`).
 - **Mutaciones vía Server Actions**, validadas con zod, con
   `revalidatePath` tras escribir.
+- **Cambiar el nombre propio (`components/edit-display-name-button.tsx`,
+  `lib/actions/profile.ts`) exige tres pasos, no solo el `prisma.user.update`**
+  — la sesión es JWT (ver `auth.config.ts`), así que el nombre viejo queda
+  horneado en el token hasta el próximo login si no se hace algo más:
+  1. Guardar en base de datos.
+  2. `unstable_update({ user: { displayName } })` (exportado desde `auth.ts`)
+     para que el `callback jwt` (con `trigger === "update"`) escriba el
+     nombre nuevo en el token y el navegador reciba la cookie actualizada.
+  3. `router.refresh()` en el cliente tras el `await` de la Server Action.
+     Se necesita igual con `unstable_update`: el render que acompaña a esa
+     misma Server Action (vía `revalidatePath`) todavía lee la cookie con la
+     que **empezó** la petición — el `Set-Cookie` de `unstable_update` solo
+     se aplica en el navegador para la *siguiente* petición. Sin este paso,
+     la cabecera se queda mostrando el nombre viejo hasta la próxima
+     navegación manual. Verificado con Playwright: sin `router.refresh()`
+     el test se queda esperando el nombre nuevo y hace timeout.
+- **El diálogo de cambiar nombre vive dentro del panel desplegable móvil
+  (`components/mobile-nav.tsx`) — no se puede desmontar ese panel al abrir
+  el diálogo.** Cerrar el menú móvil (para que no se vea detrás del overlay)
+  con `{open && (...)}` desmonta de golpe todo lo que hay dentro, incluido
+  el `Dialog` recién abierto, antes de que llegue a pintarse — un clic en
+  "cambiar nombre" no hacía nada visible. Se cambió a mantener el panel
+  siempre montado y alternar con `hidden`/`flex` (CSS), no con desmontaje
+  condicional — mismo principio que "toggle con `hidden`, no con
+  `style.display`" para estado que debe sobrevivir a un padre que se oculta.
 
 ## Variables de entorno
 

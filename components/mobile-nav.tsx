@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
 import { logout } from "@/lib/actions/auth";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { InstallAppButton } from "@/components/install-app-button";
+import { EditDisplayNameButton } from "@/components/edit-display-name-button";
 
 /**
  * Menú desplegable para móvil: sustituye los enlaces/usuario/logout de la
@@ -35,31 +37,44 @@ export function MobileNav({
         {open ? <X className="size-5" /> : <Menu className="size-5" />}
       </button>
 
-      {open && (
-        <div className="absolute inset-x-0 top-full flex flex-col gap-1 border-t border-[var(--borde)] bg-[var(--fondo)] p-3 shadow-[0_12px_24px_rgba(0,0,0,0.4)]">
-          {items.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setOpen(false)}
-              className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-[var(--superficie-2)] hover:text-foreground"
-            >
-              {item.label}
-            </Link>
-          ))}
-          <InstallAppButton variant="mobile" onAfterAction={() => setOpen(false)} />
-          <div className="mt-1 flex items-center justify-between gap-3 border-t border-[var(--borde)] px-3 pt-3">
-            <span className="truncate text-sm text-muted-foreground">
-              {displayName}
-            </span>
-            <form action={logout}>
-              <Button type="submit" variant="outline" size="sm">
-                Salir
-              </Button>
-            </form>
-          </div>
+      {/* Siempre montado (nunca `{open && ...}`): el diálogo de
+          EditDisplayNameButton vive dentro de este panel, y desmontarlo de
+          golpe al cerrar el menú se llevaba por delante el diálogo recién
+          abierto antes de que llegara a pintarse. Ocultarlo con `hidden` en
+          vez de desmontarlo mantiene su estado (y el del diálogo) intacto. */}
+      <div
+        className={cn(
+          "absolute inset-x-0 top-full flex-col gap-1 border-t border-[var(--borde)] bg-[var(--fondo)] p-3 shadow-[0_12px_24px_rgba(0,0,0,0.4)]",
+          open ? "flex" : "hidden"
+        )}
+      >
+        {items.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={() => setOpen(false)}
+            className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-[var(--superficie-2)] hover:text-foreground"
+          >
+            {item.label}
+          </Link>
+        ))}
+        <InstallAppButton variant="mobile" onAfterAction={() => setOpen(false)} />
+        <div className="mt-1 flex items-center justify-between gap-3 border-t border-[var(--borde)] px-3 pt-3">
+          <EditDisplayNameButton
+            displayName={displayName}
+            onOpenChange={(dialogOpen) => {
+              // Al abrir el diálogo, cierra (oculta) el desplegable móvil que
+              // queda debajo — si no, se ve el panel entero detrás del overlay.
+              if (dialogOpen) setOpen(false);
+            }}
+          />
+          <form action={logout}>
+            <Button type="submit" variant="outline" size="sm">
+              Salir
+            </Button>
+          </form>
         </div>
-      )}
+      </div>
     </div>
   );
 }

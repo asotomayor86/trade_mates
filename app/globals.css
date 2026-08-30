@@ -144,6 +144,18 @@ body::before {
     -webkit-backdrop-filter: blur(14px) saturate(140%);
   }
 
+  /* Cabecera fija: más opaca que el resto del "glass". A diferencia de las
+     cards, que solo se ven contra el fondo con degradado, la cabecera tiene
+     contenido real deslizándose debajo al hacer scroll — con la misma
+     opacidad del 55% de .glass, ese contenido se transparentaba lo bastante
+     como para dificultar la lectura del texto y el logo. */
+  .glass-header {
+    background: rgba(14, 10, 28, 0.92);
+    border: 1px solid var(--borde);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+  }
+
   /* Título de sección: condensado, en mayúsculas, con tracking — igual que
      .seccion-titulo en el hub de juegos. Se aplica puntualmente, no a todos
      los encabezados. */

@@ -76,6 +76,16 @@ el propio código para el detalle de cada fase ya construida.
 - **"Instalar aplicación"** al final del menú (escritorio y móvil):
   manifest + iconos reales, se deshabilita solo si el navegador ya la
   tiene instalada (o no ofrece la opción).
+- **Cambiar el nombre propio desde la cabecera** — el nombre en la cabecera
+  (escritorio y móvil) es ahora clicable: abre un diálogo para cambiarlo.
+  La sesión es JWT, así que además de guardar en base de datos se refresca
+  el token (`unstable_update` de Auth.js) y se fuerza un `router.refresh()`
+  para que la cabecera lo recoja al momento, sin re-login.
+- **Cabecera menos transparente al hacer scroll** — usaba el mismo `.glass`
+  (55% opacidad) que las cards, pensado para verse contra el fondo con
+  degradado; al ser fija arriba, el contenido real deslizándose debajo la
+  hacía difícil de leer. Clase propia `.glass-header`, más opaca (92%),
+  sin tocar `.glass` (las cards se quedan igual).
 - Logo e identidad de marca (trademates) en cabecera, login y favicon.
 - Desplegado en producción: https://trade-mates.vercel.app
 

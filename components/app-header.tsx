@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { MobileNav } from "@/components/mobile-nav";
 import { InstallAppButton } from "@/components/install-app-button";
+import { EditDisplayNameButton } from "@/components/edit-display-name-button";
 
 const enlaces = [
   { href: "/dashboard", label: "Snapshot" },
@@ -31,7 +32,7 @@ export function AppHeader({
     : enlaces;
 
   return (
-    <header className="glass sticky top-0 z-10 relative border-x-0 border-t-0">
+    <header className="glass-header sticky top-0 z-10 relative border-x-0 border-t-0">
       <div className="mx-auto flex h-16 max-w-5xl items-center gap-x-4 px-4">
         <Link href="/dashboard" aria-label="trademates" className="flex items-center">
           <Logo withTagline={false} className="h-[40px] w-auto" />
@@ -51,9 +52,7 @@ export function AppHeader({
         </nav>
 
         <div className="ml-auto hidden translate-y-[5px] items-center gap-3 sm:flex">
-          <span className="max-w-[10rem] truncate text-sm text-muted-foreground">
-            {displayName}
-          </span>
+          <EditDisplayNameButton displayName={displayName} className="max-w-[10rem]" />
           <form action={logout}>
             <Button type="submit" variant="outline" size="sm">
               Salir
