@@ -94,9 +94,11 @@ export default async function StrategyDetailPage(props: PageProps<"/playbook/[id
               verification={{
                 id: v.id,
                 imageUrl: v.imageUrl,
+                backtestImageUrl: v.backtestImageUrl,
                 symbol: v.symbol,
                 takeProfit: v.takeProfit,
                 stopLoss: v.stopLoss,
+                backtestResult: v.backtestResult,
                 description: v.description,
                 pineScript: v.pineScript,
                 createdAt: v.createdAt,

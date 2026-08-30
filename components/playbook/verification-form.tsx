@@ -3,18 +3,35 @@
 import { useActionState, useState } from "react";
 
 import { createVerification } from "@/lib/actions/strategies";
+import { BACKTEST_RESULT_OPTIONS, type BacktestResultValue } from "@/lib/strategy-options";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function VerificationForm({ strategyId }: { strategyId: string }) {
   const [error, formAction, pending] = useActionState(createVerification, null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [backtestPreview, setBacktestPreview] = useState<string | null>(null);
+  const [backtestResult, setBacktestResult] = useState<BacktestResultValue>(
+    BACKTEST_RESULT_OPTIONS[0].value
+  );
 
   function onImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     setPreview(file ? URL.createObjectURL(file) : null);
+  }
+
+  function onBacktestImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    setBacktestPreview(file ? URL.createObjectURL(file) : null);
   }
 
   return (
@@ -22,7 +39,7 @@ export function VerificationForm({ strategyId }: { strategyId: string }) {
       <input type="hidden" name="strategyId" value={strategyId} />
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="image">Captura del backtest en TradingView</Label>
+        <Label htmlFor="image">Captura del gráfico (TradingView)</Label>
         <input
           id="image"
           name="image"
@@ -36,6 +53,26 @@ export function VerificationForm({ strategyId }: { strategyId: string }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={preview}
+            alt="Vista previa"
+            className="mt-1 max-h-64 w-full rounded-md border border-[var(--borde)] object-contain"
+          />
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="backtestImage">Captura de resultados del backtesting (opcional)</Label>
+        <input
+          id="backtestImage"
+          name="backtestImage"
+          type="file"
+          accept="image/*"
+          onChange={onBacktestImageChange}
+          className="rounded-md border border-[var(--borde)] bg-[var(--superficie-2)] p-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-[var(--acento-fuerte)] file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+        />
+        {backtestPreview && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={backtestPreview}
             alt="Vista previa"
             className="mt-1 max-h-64 w-full rounded-md border border-[var(--borde)] object-contain"
           />
@@ -69,6 +106,30 @@ export function VerificationForm({ strategyId }: { strategyId: string }) {
             placeholder="p. ej. -1.5%"
           />
         </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="backtestResult">Beneficios backtesting</Label>
+        <Select
+          name="backtestResult"
+          value={backtestResult}
+          onValueChange={(v) => setBacktestResult(v as BacktestResultValue)}
+        >
+          <SelectTrigger id="backtestResult" className="w-full sm:w-56">
+            <SelectValue>
+              {(value: string) =>
+                BACKTEST_RESULT_OPTIONS.find((o) => o.value === value)?.label ?? value
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {BACKTEST_RESULT_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex flex-col gap-2">

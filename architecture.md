@@ -148,16 +148,19 @@ createdAt   DateTime
 ```
 Strategy                                StrategyVerification
 ────────────────────────────           ────────────────────────────
-id          String (cuid, PK)          id          String (cuid, PK)
-code        String (único, p. ej.      strategyId  FK→Strategy (cascade)
-            "TND-LONG")                imageUrl    String (Vercel Blob)
-name        String                     symbol      String
-resumen     String (una línea)         takeProfit  String (texto libre)
-explicacion String (@db.Text)          stopLoss    String (texto libre)
-visible     Boolean (@default true)    description String (@db.Text)
-createdById String? (FK→User,          pineScript  String? (@db.Text)
-            SetNull; null = base)      createdById String? (FK→User, SetNull)
-createdAt   DateTime                   createdAt   DateTime
+id          String (cuid, PK)          id               String (cuid, PK)
+code        String (único, p. ej.      strategyId       FK→Strategy (cascade)
+            "TND-LONG")                imageUrl         String (Vercel Blob, gráfico)
+name        String                     backtestImageUrl String? (Vercel Blob, resultados)
+resumen     String (una línea)         symbol           String
+explicacion String (@db.Text)          takeProfit       String (texto libre)
+visible     Boolean (@default true)    stopLoss         String (texto libre)
+createdById String? (FK→User,          backtestResult   BacktestResult (con/sin
+            SetNull; null = base)                        beneficios | neutra)
+createdAt   DateTime                   description      String (@db.Text)
+                                        pineScript       String? (@db.Text)
+                                        createdById      String? (FK→User, SetNull)
+                                        createdAt        DateTime
 ```
 
 - **Playbook de estrategias** (`Strategy`/`StrategyVerification`) — sección
@@ -171,6 +174,21 @@ createdAt   DateTime                   createdAt   DateTime
   programáticamente. `takeProfit`/`stopLoss` son texto libre a propósito
   (no un número con una unidad fija): un backtest puede expresarlos en %,
   en precio absoluto o en R-múltiplos según el activo.
+- **Verificación con dos imágenes + resultado del backtesting**: `imageUrl`
+  (el gráfico) sigue siendo obligatoria; `backtestImageUrl` es una segunda
+  captura opcional (p. ej. el panel del Strategy Tester) — si falta, la
+  tarjeta muestra solo una imagen a ancho completo, y si están las dos, un
+  grid a dos columnas. `backtestResult` (enum `BacktestResult`:
+  CON_BENEFICIOS/NEUTRA/SIN_BENEFICIOS) es obligatorio y se pinta con el
+  mismo esquema de color verde/oro/rojo que el resto de la app.
+- **Trampa al probar formularios con subida de imagen** (ya picó dos
+  veces): un selector genérico `button[type="submit"]` en Playwright no
+  coge el botón del formulario, coge el "Salir" de la cabecera (siempre en
+  el DOM a partir de `sm:`, y aparece antes en el árbol) — el fallo
+  resultante (sesión cerrada, redirige a /login) parece un bug real de la
+  action pero es solo el test disparando el logout. Hay que localizar el
+  botón por su texto/rol (`getByRole('button', { name: 'Publicar
+  verificación' })`), nunca por el selector genérico.
 - **Crear una estrategia es solo de admin** (`createStrategy` usa
   `requireAdmin()`, y `/playbook/nueva` redirige si no lo eres) — el
   contenido base del playbook debe quedar curado. Las verificaciones

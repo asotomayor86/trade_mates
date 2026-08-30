@@ -62,6 +62,11 @@ el propio código para el detalle de cada fase ya construida.
   ningún sitio (ni en el listado, ni por enlace directo, ni pueden
   añadirle verificaciones) — solo el admin la ve, marcada con una
   insignia "Oculta" y por delante de las ya publicadas.
+- **Playbook — segunda imagen y resultado del backtesting** — una
+  verificación admite ahora una segunda captura opcional (los resultados
+  del backtesting, además del gráfico) y un campo obligatorio "Beneficios
+  backtesting" (Con beneficios / Neutra / Sin beneficios), con badge de
+  color a juego.
 - Logo e identidad de marca (trademates) en cabecera, login y favicon.
 - Desplegado en producción: https://trade-mates.vercel.app
 

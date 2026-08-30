@@ -179,14 +179,19 @@ model StrategyVerification {
   strategyId String
   strategy   Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
 
-  imageUrl String // snapshot del backtest en TradingView (Vercel Blob)
-  symbol   String // valor/activo sobre el que se probó
+  imageUrl String // captura del gráfico del backtest en TradingView (Vercel Blob)
+  // Segunda captura opcional: los resultados del backtesting (p. ej. el
+  // panel del Strategy Tester), distinta de imageUrl (el gráfico en sí).
+  backtestImageUrl String?
+  symbol           String // valor/activo sobre el que se probó
 
   // Texto libre, no numérico con unidad fija: el backtest puede expresar el
   // nivel en % ("+3%"), en precio absoluto ("1.0850") o en R-múltiplos,
   // según el activo y cómo lo haya montado quien lo prueba.
   takeProfit String
   stopLoss   String
+
+  backtestResult BacktestResult // resultado del backtesting: con/sin beneficios o neutra
 
   description String  @db.Text // cómo ha funcionado el backtesting
   pineScript  String? @db.Text // opcional: código Pine Script usado
@@ -198,4 +203,10 @@ model StrategyVerification {
 
   @@index([strategyId])
   @@index([createdById])
+}
+
+enum BacktestResult {
+  CON_BENEFICIOS
+  NEUTRA
+  SIN_BENEFICIOS
 }

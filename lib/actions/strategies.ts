@@ -103,6 +103,7 @@ export async function deleteStrategy(id: string) {
 
 const symbolSchema = z.string().trim().min(1, "Indica el símbolo o valor").max(40);
 const levelSchema = z.string().trim().min(1, "Indica el nivel").max(40);
+const backtestResultSchema = z.enum(["CON_BENEFICIOS", "NEUTRA", "SIN_BENEFICIOS"]);
 const descriptionSchema = z
   .string()
   .trim()
@@ -135,6 +136,20 @@ export async function createVerification(_prev: string | null, formData: FormDat
     return "La imagen no puede superar 5MB";
   }
 
+  // Segunda imagen opcional: los resultados del backtesting. Si no se
+  // adjunta, se guarda como null — a diferencia de la primera, no es
+  // obligatoria.
+  const backtestImage = formData.get("backtestImage");
+  const hasBacktestImage = backtestImage instanceof File && backtestImage.size > 0;
+  if (hasBacktestImage) {
+    if (!backtestImage.type.startsWith("image/")) {
+      return "La segunda imagen debe ser una imagen";
+    }
+    if (backtestImage.size > MAX_IMAGE_BYTES) {
+      return "La segunda imagen no puede superar 5MB";
+    }
+  }
+
   const symbol = symbolSchema.safeParse(formData.get("symbol"));
   if (!symbol.success) return symbol.error.issues[0]?.message ?? "Símbolo inválido";
 
@@ -143,6 +158,9 @@ export async function createVerification(_prev: string | null, formData: FormDat
 
   const stopLoss = levelSchema.safeParse(formData.get("stopLoss"));
   if (!stopLoss.success) return "Indica el nivel de stop loss";
+
+  const backtestResult = backtestResultSchema.safeParse(formData.get("backtestResult"));
+  if (!backtestResult.success) return "Indica si el backtesting dio beneficios";
 
   const description = descriptionSchema.safeParse(formData.get("description"));
   if (!description.success) return description.error.issues[0]?.message ?? "Descripción inválida";
@@ -162,13 +180,29 @@ export async function createVerification(_prev: string | null, formData: FormDat
     return "No se pudo subir la imagen. ¿Está configurado el almacenamiento de Vercel Blob?";
   }
 
+  let backtestBlobUrl: string | null = null;
+  if (hasBacktestImage) {
+    try {
+      const blob = await put(
+        `playbook/backtest-${session.user.id}-${Date.now()}-${backtestImage.name}`,
+        backtestImage,
+        { access: "public", addRandomSuffix: true }
+      );
+      backtestBlobUrl = blob.url;
+    } catch {
+      return "No se pudo subir la segunda imagen. ¿Está configurado el almacenamiento de Vercel Blob?";
+    }
+  }
+
   await prisma.strategyVerification.create({
     data: {
       strategyId: strategy.id,
       imageUrl: blobUrl,
+      backtestImageUrl: backtestBlobUrl,
       symbol: symbol.data,
       takeProfit: takeProfit.data,
       stopLoss: stopLoss.data,
+      backtestResult: backtestResult.data,
       description: description.data,
       pineScript,
       createdById: session.user.id,
@@ -193,11 +227,20 @@ export async function deleteVerification(id: string) {
 
   await prisma.strategyVerification.delete({ where: { id } });
 
-  // Best-effort, igual que en deleteAlert.
+  // Best-effort, igual que en deleteAlert — cada una en su propio try/catch
+  // para que un fallo en una no impida intentar borrar la otra. La segunda
+  // imagen es opcional, así que puede no haber nada que borrar.
   try {
     await del(verification.imageUrl);
   } catch {
     // ignorado a propósito
+  }
+  if (verification.backtestImageUrl) {
+    try {
+      await del(verification.backtestImageUrl);
+    } catch {
+      // ignorado a propósito
+    }
   }
 
   revalidatePath(`/playbook/${verification.strategyId}`);
