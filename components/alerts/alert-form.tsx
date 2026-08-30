@@ -3,8 +3,16 @@
 import { useActionState, useState } from "react";
 
 import { createAlert } from "@/lib/actions/alerts";
-import { REVIEW_OPTIONS } from "@/lib/alert-options";
+import {
+  REVIEW_OPTIONS,
+  SENTIDO_OPTIONS,
+  BASADO_EN_OPTIONS,
+  composeAlertTitle,
+  type Sentido,
+  type BasadoEn,
+} from "@/lib/alert-options";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -18,6 +26,11 @@ import {
 export function AlertForm() {
   const [error, formAction, pending] = useActionState(createAlert, null);
   const [preview, setPreview] = useState<string | null>(null);
+
+  const [symbol, setSymbol] = useState("");
+  const [sentido, setSentido] = useState<Sentido>(SENTIDO_OPTIONS[0].value);
+  const [basadoEn, setBasadoEn] = useState<BasadoEn>(BASADO_EN_OPTIONS[0].value);
+  const title = symbol.trim() ? composeAlertTitle(symbol.trim(), sentido, basadoEn) : null;
 
   function onImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -46,6 +59,75 @@ export function AlertForm() {
           />
         )}
       </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="symbol">Símbolo o valor</Label>
+          <Input
+            id="symbol"
+            name="symbol"
+            required
+            maxLength={40}
+            placeholder="p. ej. Bitcoin"
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value)}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="sentido">Sentido</Label>
+          <Select
+            name="sentido"
+            value={sentido}
+            onValueChange={(v) => setSentido(v as Sentido)}
+          >
+            <SelectTrigger id="sentido" className="w-full">
+              <SelectValue>
+                {(value: string) =>
+                  SENTIDO_OPTIONS.find((o) => o.value === value)?.label ?? value
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {SENTIDO_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="basadoEn">Basado en</Label>
+          <Select
+            name="basadoEn"
+            value={basadoEn}
+            onValueChange={(v) => setBasadoEn(v as BasadoEn)}
+          >
+            <SelectTrigger id="basadoEn" className="w-full">
+              <SelectValue>
+                {(value: string) =>
+                  BASADO_EN_OPTIONS.find((o) => o.value === value)?.label ?? value
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {BASADO_EN_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {title && (
+        <p className="rounded-md border border-[var(--borde)] bg-[var(--superficie-2)] px-3 py-2 text-sm">
+          Título: <span className="font-semibold text-foreground">{title}</span>
+        </p>
+      )}
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="comment">¿Qué estás viendo?</Label>

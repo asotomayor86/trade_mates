@@ -3,12 +3,18 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/alerts/status-badge";
 import { SeenToggle } from "@/components/alerts/seen-toggle";
+import { SentidoBadge } from "@/components/alerts/sentido-badge";
 import { shortDateTime } from "@/lib/format-date";
+import type { Sentido, BasadoEn } from "@/lib/alert-options";
 
 export type AlertCardData = {
   id: string;
   imageUrl: string;
   comment: string;
+  symbol: string;
+  sentido: Sentido;
+  basadoEn: BasadoEn;
+  title: string;
   reviewAt: Date;
   verdict: "CIERTA" | "INCIERTA" | null;
   createdAt: Date;
@@ -36,8 +42,12 @@ export function AlertCard({ alert }: { alert: AlertCardData }) {
             {shortDateTime(alert.createdAt)}
           </span>
         </div>
-        <Link href={`/alertas/${alert.id}`}>
-          <p className="line-clamp-2 text-sm text-foreground hover:underline">
+        <Link href={`/alertas/${alert.id}`} className="flex flex-col gap-1">
+          <SentidoBadge sentido={alert.sentido} />
+          <p className="text-sm font-semibold text-foreground hover:underline">
+            {alert.title}
+          </p>
+          <p className="line-clamp-2 text-xs text-muted-foreground">
             {alert.comment}
           </p>
         </Link>

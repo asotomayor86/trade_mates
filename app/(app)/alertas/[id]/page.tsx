@@ -5,8 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/alerts/status-badge";
 import { SeenToggle } from "@/components/alerts/seen-toggle";
+import { SentidoBadge } from "@/components/alerts/sentido-badge";
 import { VerdictButtons } from "@/components/alerts/verdict-buttons";
 import { shortDateTime } from "@/lib/format-date";
+import { composeAlertTitle } from "@/lib/alert-options";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +32,7 @@ export default async function AlertaDetailPage(props: PageProps<"/alertas/[id]">
   const seenByMe = alert.seenBy.some((s) => s.userId === session.user.id);
   const isOwner = alert.createdById === session.user.id;
   const canJudge = (isOwner || session.user.role === "ADMIN") && !alert.verdict;
+  const title = composeAlertTitle(alert.symbol, alert.sentido, alert.basadoEn);
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 p-4">
@@ -47,6 +50,11 @@ export default async function AlertaDetailPage(props: PageProps<"/alertas/[id]">
               {alert.createdBy?.displayName ?? "usuario eliminado"} ·{" "}
               {shortDateTime(alert.createdAt)}
             </span>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <SentidoBadge sentido={alert.sentido} />
+            <h1 className="text-lg font-semibold text-foreground">{title}</h1>
           </div>
 
           <p className="whitespace-pre-wrap text-sm">{alert.comment}</p>

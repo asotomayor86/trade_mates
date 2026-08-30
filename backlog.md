@@ -19,6 +19,12 @@ el propio código para el detalle de cada fase ya construida.
   plazo de autorrevisión (3/5/7/14/30 días). Marca de "visto" manual por
   usuario. El creador (o un admin) valora después si fue cierta o
   incierta.
+- **Alertas — título estructurado y vistas** — 3 campos nuevos (símbolo,
+  sentido alcista/bajista, basado en soportes-resistencias/ondas/
+  indicadores) que componen el título de la alerta (p. ej. "Bitcoin
+  alcista basado en soportes y resistencias"), con previsualización en
+  vivo en el formulario. Listado con selector Tarjetas/Lista y separación
+  en secciones "No vistas" / "Vistas".
 - Logo e identidad de marca (trademates) en cabecera, login y favicon.
 - Desplegado en producción: https://trade-mates.vercel.app
 

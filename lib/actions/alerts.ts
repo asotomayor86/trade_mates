@@ -19,6 +19,9 @@ const reviewMinutesSchema = z
   .refine((n) => VALID_REVIEW_MINUTES.includes(n as (typeof VALID_REVIEW_MINUTES)[number]));
 
 const commentSchema = z.string().min(1, "Escribe un comentario").max(4000);
+const symbolSchema = z.string().trim().min(1, "Indica el símbolo o valor").max(40);
+const sentidoSchema = z.enum(["ALCISTA", "BAJISTA"]);
+const basadoEnSchema = z.enum(["SOPORTES_RESISTENCIAS", "ONDAS", "INDICADORES"]);
 
 /** Crea una alerta: sube la imagen a Vercel Blob y guarda el registro. */
 export async function createAlert(_prev: string | null, formData: FormData): Promise<string | null> {
@@ -38,6 +41,21 @@ export async function createAlert(_prev: string | null, formData: FormData): Pro
   const comment = commentSchema.safeParse(formData.get("comment"));
   if (!comment.success) {
     return comment.error.issues[0]?.message ?? "Comentario inválido";
+  }
+
+  const symbol = symbolSchema.safeParse(formData.get("symbol"));
+  if (!symbol.success) {
+    return symbol.error.issues[0]?.message ?? "Símbolo inválido";
+  }
+
+  const sentido = sentidoSchema.safeParse(formData.get("sentido"));
+  if (!sentido.success) {
+    return "Indica si es alcista o bajista";
+  }
+
+  const basadoEn = basadoEnSchema.safeParse(formData.get("basadoEn"));
+  if (!basadoEn.success) {
+    return "Indica en qué basas la alerta";
   }
 
   const reviewMinutes = reviewMinutesSchema.safeParse(formData.get("reviewMinutes"));
@@ -62,6 +80,9 @@ export async function createAlert(_prev: string | null, formData: FormData): Pro
     data: {
       imageUrl: blobUrl,
       comment: comment.data,
+      symbol: symbol.data,
+      sentido: sentido.data,
+      basadoEn: basadoEn.data,
       reviewAt,
       createdById: session.user.id,
     },

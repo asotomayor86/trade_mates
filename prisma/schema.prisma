@@ -65,6 +65,17 @@ enum AlertVerdict {
   INCIERTA
 }
 
+enum AlertSentido {
+  ALCISTA
+  BAJISTA
+}
+
+enum AlertBasadoEn {
+  SOPORTES_RESISTENCIAS
+  ONDAS
+  INDICADORES
+}
+
 // Alerta de mercado: alguien sube una captura de Snapshot con un comentario
 // avisando de lo que está viendo. Queda "pendiente" hasta reviewAt (plazo
 // que el propio creador fija al crearla), momento en que él mismo valora si
@@ -73,6 +84,15 @@ model Alert {
   id       String  @id @default(cuid())
   imageUrl String
   comment  String  @db.Text
+
+  // Los tres campos con los que se compone el título de la alerta (ver
+  // composeAlertTitle en lib/alert-options.ts), p. ej. "Bitcoin alcista
+  // basado en soportes y resistencias". Llevan un @default porque al
+  // añadirlos ya existían alertas en producción sin estos datos; toda
+  // alerta nueva los rellena siempre desde el formulario.
+  symbol   String        @default("Sin especificar")
+  sentido  AlertSentido  @default(ALCISTA)
+  basadoEn AlertBasadoEn @default(INDICADORES)
 
   // Plazo de autorrevisión: lo decide el creador al crear la alerta.
   reviewAt DateTime

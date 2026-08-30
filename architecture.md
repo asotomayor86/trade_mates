@@ -111,12 +111,24 @@ Alert                                   AlertSeen
 id          String (cuid, PK)          id       String (cuid, PK)
 imageUrl    String (Vercel Blob)       alertId  FK→Alert (cascade)
 comment     String (@db.Text)          userId   FK→User (cascade)
-reviewAt    DateTime (creador la fija) seenAt   DateTime
-verdict     AlertVerdict? (CIERTA|INCIERTA)      @@unique([alertId, userId])
+symbol      String                     seenAt   DateTime
+sentido     AlertSentido (ALCISTA|BAJISTA)       @@unique([alertId, userId])
+basadoEn    AlertBasadoEn (SOPORTES_RESISTENCIAS|ONDAS|INDICADORES)
+reviewAt    DateTime (creador la fija)
+verdict     AlertVerdict? (CIERTA|INCIERTA)
 verdictAt   DateTime?
 createdById String? (FK→User, SetNull)
 createdAt   DateTime
 ```
+
+- **symbol/sentido/basadoEn** componen el título de la alerta (p. ej.
+  "Bitcoin alcista basado en soportes y resistencias") vía
+  `composeAlertTitle()` en `lib/alert-options.ts` — no se guarda un campo
+  `title` aparte, se recalcula siempre a partir de los tres, igual que
+  `REVIEW_OPTIONS` viven ahí por no poder exportarse desde un archivo
+  `"use server"`. Llevan `@default(...)` en el esquema porque al añadirlos
+  ya existía al menos una alerta en producción sin estos datos (quedó con
+  los valores por defecto: symbol "Sin especificar", ALCISTA, INDICADORES).
 
 - **SetNull, no Cascade**, en `createdById` de `Invitation` y `Alert`: si se
   borra el admin/usuario que las creó, sobreviven como registro histórico
@@ -148,6 +160,12 @@ createdAt   DateTime
   cotización — se compara contra el primero recibido para saber si el
   usuario cambió de valor, y así ocultar el aviso del CFD. Ver
   `components/charts/tradingview-widget.tsx`.
+- **Vista de Alertas (`components/alerts/alerts-view.tsx`)**: selector
+  Tarjetas/Lista (estado de cliente, no persistido) y separación en
+  secciones "No vistas" / "Vistas" según `AlertSeen` del usuario actual —
+  las no vistas van primero por ser las que requieren atención. Tarjetas
+  reutiliza `AlertCard` (grid); Lista usa `AlertListItem`, una fila
+  horizontal compacta con la misma información.
 - **`REVIEW_OPTIONS` vive en `lib/alert-options.ts`, no en
   `lib/actions/alerts.ts`** — un archivo `"use server"` solo puede
   exportar funciones async; cualquier otro export (como esta constante) se

@@ -3,7 +3,9 @@ import Link from "next/link";
 import { requireSession } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
-import { AlertCard, type AlertCardData } from "@/components/alerts/alert-card";
+import { type AlertCardData } from "@/components/alerts/alert-card";
+import { AlertsView } from "@/components/alerts/alerts-view";
+import { composeAlertTitle } from "@/lib/alert-options";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,10 @@ export default async function AlertasPage() {
     id: a.id,
     imageUrl: a.imageUrl,
     comment: a.comment,
+    symbol: a.symbol,
+    sentido: a.sentido,
+    basadoEn: a.basadoEn,
+    title: composeAlertTitle(a.symbol, a.sentido, a.basadoEn),
     reviewAt: a.reviewAt,
     verdict: a.verdict,
     createdAt: a.createdAt,
@@ -46,11 +52,7 @@ export default async function AlertasPage() {
           Nadie ha publicado ninguna alerta todavía.
         </p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.map((alert) => (
-            <AlertCard key={alert.id} alert={alert} />
-          ))}
-        </div>
+        <AlertsView alerts={data} />
       )}
     </div>
   );
