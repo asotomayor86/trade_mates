@@ -46,6 +46,16 @@ el propio código para el detalle de cada fase ya construida.
   "Revisar dentro de 7 días" aunque solo quedasen 6 días y pico); ahora
   muestra el tiempo real con dos unidades de precisión, p. ej. "Revisar
   en 6 días y 15 horas".
+- **Playbook de estrategias** (`/playbook`) — nueva sección: estrategias
+  explicadas en detalle para que el grupo aprenda (sembradas con las 7 de
+  referencia: Tendencia clásica largo/corto, Rebote sobreventa, Breakout
+  alcista/bajista, Scalping rápido, Reversión a VWAP); crear una estrategia
+  nueva es solo de admin, para mantener el contenido base curado. Cada
+  estrategia admite N "verificaciones", que sí puede añadir cualquier
+  usuario: backtesting manual sobre un valor concreto con captura de
+  TradingView, niveles de take profit/stop loss, descripción de cómo fue,
+  y código Pine Script opcional — mismas mecánicas ya probadas en Alertas
+  (Blob, permisos creador-o-admin para borrar).
 - Logo e identidad de marca (trademates) en cabecera, login y favicon.
 - Desplegado en producción: https://trade-mates.vercel.app
 
@@ -60,3 +70,6 @@ el propio código para el detalle de cada fase ya construida.
 - Sin manifest/PWA (instalar como app en el móvil).
 - Sin paginación en las tablas de usuarios/invitaciones del panel admin
   (irrelevante mientras el grupo sea pequeño).
+- Playbook: sin edición de una estrategia o verificación ya creada (solo
+  crear/borrar, igual que Alertas) — si hace falta corregir algo hoy toca
+  borrar y volver a crearlo.

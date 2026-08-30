@@ -31,6 +31,9 @@ model User {
 
   alertsCreated Alert[]     @relation("AlertCreator")
   alertsSeen    AlertSeen[]
+
+  strategiesCreated    Strategy[]              @relation("StrategyCreator")
+  verificationsCreated StrategyVerification[]  @relation("VerificationCreator")
 }
 
 // Invitación de un solo uso: el admin la crea con un rol asignado, comparte
@@ -128,4 +131,63 @@ model AlertSeen {
   seenAt DateTime @default(now())
 
   @@unique([alertId, userId])
+}
+
+// Playbook de estrategias: ficha de referencia compartida para que el grupo
+// aprenda una estrategia (no se ejecuta ni se simula, es solo contenido
+// explicativo + registro manual de backtesting). `code` es una etiqueta
+// corta y memorable (p. ej. "TND-LONG"); también sirve de clave para el
+// seed idempotente en prisma/seed.ts.
+model Strategy {
+  id          String @id @default(cuid())
+  code        String @unique
+  name        String
+  // Resumen de una línea (se ve en las tarjetas del listado).
+  resumen     String
+  // Explicación completa: entrada, salida, stop, por qué funciona, cuándo
+  // usarla — pensada para enseñar, no solo para documentar parámetros.
+  explicacion String @db.Text
+
+  // Null en las estrategias iniciales del seed (no las creó un usuario
+  // concreto) — a diferencia de Alert/Invitation, aquí null no significa
+  // "el creador se borró", así que la UI lo trata distinto ("Estrategia
+  // base" en vez de "usuario eliminado").
+  createdById String?
+  createdBy   User?   @relation("StrategyCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  verifications StrategyVerification[]
+
+  @@index([createdById])
+}
+
+// Backtesting manual de una estrategia sobre un valor concreto: captura de
+// TradingView + niveles de TP/SL usados en la prueba + cómo fue. Una
+// estrategia puede tener N verificaciones. A diferencia de Alert/Invitation,
+// aquí sí es Cascade: una verificación no tiene sentido sin su estrategia.
+model StrategyVerification {
+  id         String   @id @default(cuid())
+  strategyId String
+  strategy   Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  imageUrl String // snapshot del backtest en TradingView (Vercel Blob)
+  symbol   String // valor/activo sobre el que se probó
+
+  // Texto libre, no numérico con unidad fija: el backtest puede expresar el
+  // nivel en % ("+3%"), en precio absoluto ("1.0850") o en R-múltiplos,
+  // según el activo y cómo lo haya montado quien lo prueba.
+  takeProfit String
+  stopLoss   String
+
+  description String  @db.Text // cómo ha funcionado el backtesting
+  pineScript  String? @db.Text // opcional: código Pine Script usado
+
+  createdById String?
+  createdBy   User?   @relation("VerificationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([strategyId])
+  @@index([createdById])
 }

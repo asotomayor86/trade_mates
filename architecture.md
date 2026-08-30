@@ -12,6 +12,8 @@ demás de lo que está viendo, con capturas y autorrevisión pasado un tiempo.
 - **Snapshot** (`/dashboard`) — gráfico de TradingView (velas + indicadores).
 - **Alertas** (`/alertas`) — subir una captura + comentario, marcarla como
   vista, y que quien la creó valore después si acertó.
+- **Playbook** (`/playbook`) — estrategias explicadas en detalle para que el
+  grupo aprenda, con backtesting manual (N verificaciones por estrategia).
 - **Administración** (`/admin`, solo ADMIN) — invitaciones de un solo uso y
   gestión de usuarios.
 
@@ -25,7 +27,7 @@ Sin registro abierto: entras por invitación de un admin.
 | UI               | Tailwind CSS v4 + shadcn/ui (base Base UI), Barlow Semi Condensed |
 | Autenticación    | Auth.js / NextAuth v5 (credentials, sesión JWT)           |
 | ORM / BD         | Prisma 6 + PostgreSQL (Neon, vía integración nativa de Vercel) |
-| Almacenamiento   | Vercel Blob (imágenes de las Alertas)                     |
+| Almacenamiento   | Vercel Blob (imágenes de Alertas y del Playbook)          |
 | Hash contraseñas | bcryptjs                                                  |
 | Validación       | zod                                                       |
 | Despliegue       | Vercel — https://trade-mates.vercel.app                   |
@@ -48,8 +50,8 @@ serif genérica.
 ```
 trade_mates/
 ├── prisma/
-│   ├── schema.prisma          # User, Invitation, Alert, AlertSeen
-│   ├── seed.ts                # admin inicial (idempotente, envs saneadas)
+│   ├── schema.prisma          # User, Invitation, Alert, AlertSeen, Strategy, StrategyVerification
+│   ├── seed.ts                # admin inicial + 7 estrategias base (todo idempotente)
 │   └── migrations/
 ├── app/
 │   ├── layout.tsx             # fuente Barlow, sin cabecera (la pone (app))
@@ -65,6 +67,12 @@ trade_mates/
 │       │   ├── page.tsx        # listado
 │       │   ├── nueva/          # crear alerta
 │       │   └── [id]/           # detalle (visto, veredicto)
+│       ├── playbook/
+│       │   ├── page.tsx        # listado de estrategias
+│       │   ├── nueva/          # crear estrategia
+│       │   └── [id]/
+│       │       ├── page.tsx    # detalle (explicación + verificaciones)
+│       │       └── nueva/      # crear una verificación (backtesting)
 │       └── admin/              # solo ADMIN: invitaciones + usuarios
 ├── components/
 │   ├── app-header.tsx          # cabecera + MobileNav (drawer <640px)
@@ -73,6 +81,7 @@ trade_mates/
 │   ├── charts/tradingview-widget.tsx
 │   ├── dashboard/snapshot-view.tsx
 │   ├── alerts/                 # alert-form, alert-card, seen-toggle, ...
+│   ├── playbook/                # strategy-form/card, verification-form/card, delete-*
 │   ├── admin/                  # invitations-manager, users-manager
 │   └── ui/                     # shadcn/ui
 ├── lib/
@@ -81,7 +90,7 @@ trade_mates/
 │   ├── auth-helpers.ts         # requireSession / requireAdmin
 │   ├── alert-options.ts        # REVIEW_OPTIONS (fuera de actions/, ver nota)
 │   ├── format-date.ts          # isPast, preciseRemaining, shortDateTime
-│   └── actions/                # server actions: auth, invitations, users, alerts
+│   └── actions/                # server actions: auth, invitations, users, alerts, strategies
 ├── types/next-auth.d.ts        # augmentación de sesión/JWT
 ├── auth.config.ts              # edge-safe (sin Prisma/bcrypt), para proxy.ts
 ├── auth.ts                     # proveedor credentials (Prisma/bcrypt)
@@ -136,6 +145,54 @@ createdAt   DateTime
 - **AlertSeen**: "visto" manual e independiente por usuario — no tiene
   relación con el veredicto del creador.
 
+```
+Strategy                                StrategyVerification
+────────────────────────────           ────────────────────────────
+id          String (cuid, PK)          id          String (cuid, PK)
+code        String (único, p. ej.      strategyId  FK→Strategy (cascade)
+            "TND-LONG")                imageUrl    String (Vercel Blob)
+name        String                     symbol      String
+resumen     String (una línea)         takeProfit  String (texto libre)
+explicacion String (@db.Text)          stopLoss    String (texto libre)
+createdById String? (FK→User,          description String (@db.Text)
+            SetNull; null = base)      pineScript  String? (@db.Text)
+createdAt   DateTime                   createdById String? (FK→User, SetNull)
+                                        createdAt   DateTime
+```
+
+- **Playbook de estrategias** (`Strategy`/`StrategyVerification`) — sección
+  de referencia compartida ("aprender juntos") + registro manual de
+  backtesting, con las mismas mecánicas ya probadas en Alertas (subida de
+  imagen a Blob, permisos creador-o-admin para borrar). A diferencia de
+  Alertas, aquí no se ejecuta ni se simula nada: es contenido para leer y
+  un historial de pruebas, no un motor de trading — por eso no se copiaron
+  los campos estructurados (`entryRule`, `exitTargetType`, etc.) del
+  proyecto hermano `trade_sim`, que sí ejecuta sus estrategias
+  programáticamente. `takeProfit`/`stopLoss` son texto libre a propósito
+  (no un número con una unidad fija): un backtest puede expresarlos en %,
+  en precio absoluto o en R-múltiplos según el activo.
+- **Crear una estrategia es solo de admin** (`createStrategy` usa
+  `requireAdmin()`, y `/playbook/nueva` redirige si no lo eres) — el
+  contenido base del playbook debe quedar curado. Las verificaciones
+  (backtesting) sí puede añadirlas cualquier usuario, igual que en
+  Alertas — es donde se anima a participar al grupo.
+- **`Strategy.createdById` null no significa lo mismo que en Alert/
+  Invitation** — ahí null pasa a significar "se borró quien la creó"; en
+  Strategy puede significar eso, pero las 7 iniciales del seed nunca
+  tuvieron creador (son contenido base del sistema). La UI distingue los
+  dos casos con textos distintos: "Estrategia base" en vez de "usuario
+  eliminado".
+- **`StrategyVerification` sí es Cascade** (no SetNull) en `strategyId`: a
+  diferencia de una alerta o invitación, una verificación no tiene sentido
+  sin la estrategia a la que pertenece — si se borra la estrategia, se
+  borran sus verificaciones.
+- **Seed de las 7 estrategias base, create-only por `code`** (en
+  `prisma/seed.ts`, corre en cada deploy junto al admin): si alguna se
+  borra (a mano, o por un admin usando el propio botón de borrar), el
+  siguiente despliegue la vuelve a crear — funciona como red de seguridad
+  para el contenido curado. Si en el futuro se añade edición, esto habría
+  que revisarlo para no pisar una edición manual.
+
 ## Decisiones de diseño
 
 - **Sin email, login por username** — mismo criterio que otros proyectos
@@ -188,7 +245,7 @@ createdAt   DateTime
 | `DATABASE_URL`              | Postgres con pooling (la inyecta Neon en Vercel)          |
 | `DATABASE_URL_UNPOOLED`     | Conexión directa, la usa Prisma Migrate (no "DIRECT_URL") |
 | `AUTH_SECRET`               | Secreto de Auth.js para firmar el JWT                     |
-| `BLOB_READ_WRITE_TOKEN`     | Subida de imágenes de Alertas (Vercel Blob)               |
+| `BLOB_READ_WRITE_TOKEN`     | Subida de imágenes de Alertas y del Playbook (Vercel Blob) |
 | `SEED_ADMIN_USERNAME/PASSWORD/DISPLAYNAME` | Admin inicial (opcional; ver `prisma/seed.ts`) |
 
 **Nota de seguridad real ya corregida**: el seed usaba `??` para los

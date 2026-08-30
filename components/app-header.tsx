@@ -8,6 +8,7 @@ import { MobileNav } from "@/components/mobile-nav";
 const enlaces = [
   { href: "/dashboard", label: "Snapshot" },
   { href: "/alertas", label: "Alertas" },
+  { href: "/playbook", label: "Playbook" },
 ];
 
 /**
