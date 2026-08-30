@@ -8,6 +8,7 @@ import { SeenToggle } from "@/components/alerts/seen-toggle";
 import { SentidoBadge } from "@/components/alerts/sentido-badge";
 import { VerdictButtons } from "@/components/alerts/verdict-buttons";
 import { ReviewCountdown } from "@/components/alerts/review-countdown";
+import { DeleteAlertButton } from "@/components/alerts/delete-alert-button";
 import { shortDateTime, isPast } from "@/lib/format-date";
 import { composeAlertTitle } from "@/lib/alert-options";
 
@@ -36,6 +37,7 @@ export default async function AlertaDetailPage(props: PageProps<"/alertas/[id]">
   const isOwner = alert.createdById === session.user.id;
   const canJudge = isOwner && !alert.verdict;
   const reviewDue = isPast(alert.reviewAt);
+  const canDelete = isOwner || session.user.role === "ADMIN";
   const title = composeAlertTitle(alert.symbol, alert.sentido, alert.basadoEn);
 
   return (
@@ -78,6 +80,12 @@ export default async function AlertaDetailPage(props: PageProps<"/alertas/[id]">
             ) : (
               <ReviewCountdown reviewAt={alert.reviewAt} />
             ))}
+
+          {canDelete && (
+            <div className="flex justify-end border-t border-[var(--borde)] pt-3">
+              <DeleteAlertButton alertId={alert.id} />
+            </div>
+          )}
         </div>
       </Card>
     </div>

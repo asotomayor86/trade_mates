@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { put } from "@vercel/blob";
+import { put, del } from "@vercel/blob";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -142,6 +142,32 @@ export async function setVerdict(alertId: string, verdictInput: string) {
     where: { id: alertId },
     data: { verdict: parsed.data, verdictAt: new Date() },
   });
+
+  revalidatePath("/alertas");
+  revalidatePath(`/alertas/${alertId}`);
+}
+
+/** Quien creó la alerta, o un admin, puede eliminarla (y su imagen en Blob). */
+export async function deleteAlert(alertId: string) {
+  const session = await requireSession();
+
+  const alert = await prisma.alert.findUnique({ where: { id: alertId } });
+  if (!alert) throw new Error("Alerta no encontrada");
+
+  const isOwner = alert.createdById === session.user.id;
+  if (!isOwner && session.user.role !== "ADMIN") {
+    throw new Error("No tienes permiso para eliminar esta alerta");
+  }
+
+  await prisma.alert.delete({ where: { id: alertId } });
+
+  // Best-effort: si falla (o Blob no está configurado en local), no
+  // bloquea el borrado ya hecho en la base de datos.
+  try {
+    await del(alert.imageUrl);
+  } catch {
+    // ignorado a propósito
+  }
 
   revalidatePath("/alertas");
   revalidatePath(`/alertas/${alertId}`);
