@@ -154,10 +154,10 @@ code        String (único, p. ej.      strategyId  FK→Strategy (cascade)
 name        String                     symbol      String
 resumen     String (una línea)         takeProfit  String (texto libre)
 explicacion String (@db.Text)          stopLoss    String (texto libre)
-createdById String? (FK→User,          description String (@db.Text)
-            SetNull; null = base)      pineScript  String? (@db.Text)
-createdAt   DateTime                   createdById String? (FK→User, SetNull)
-                                        createdAt   DateTime
+visible     Boolean (@default true)    description String (@db.Text)
+createdById String? (FK→User,          pineScript  String? (@db.Text)
+            SetNull; null = base)      createdById String? (FK→User, SetNull)
+createdAt   DateTime                   createdAt   DateTime
 ```
 
 - **Playbook de estrategias** (`Strategy`/`StrategyVerification`) — sección
@@ -176,6 +176,20 @@ createdAt   DateTime                   createdById String? (FK→User, SetNull)
   contenido base del playbook debe quedar curado. Las verificaciones
   (backtesting) sí puede añadirlas cualquier usuario, igual que en
   Alertas — es donde se anima a participar al grupo.
+- **Revisión antes de publicar (`Strategy.visible`)**: una estrategia
+  nueva nace con `visible: false` (lo pone `createStrategy` a propósito,
+  no el `@default(true)` del esquema) para que un admin la revise en su
+  página de detalle y la publique cuando esté conforme
+  (`setStrategyVisible`, solo admin). El `@default(true)` del esquema es
+  para las filas ya existentes al añadir la columna (las 7 del seed, ya
+  públicas) — no afecta a las nuevas, que siempre se crean ocultas
+  explícitamente. Una estrategia oculta es "no encontrada" para
+  cualquiera que no sea admin en los tres sitios que importan:
+  `/playbook` (no aparece en el listado), `/playbook/[id]` (404 por
+  enlace directo) y `createVerification` (rechaza añadir un backtesting).
+  Un admin sí ve las ocultas, marcadas con una insignia "Oculta", y
+  ordenadas antes que las publicadas (son las que tiene pendientes de
+  revisar).
 - **`Strategy.createdById` null no significa lo mismo que en Alert/
   Invitation** — ahí null pasa a significar "se borró quien la creó"; en
   Strategy puede significar eso, pero las 7 iniciales del seed nunca

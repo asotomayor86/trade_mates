@@ -148,6 +148,14 @@ model Strategy {
   // usarla — pensada para enseñar, no solo para documentar parámetros.
   explicacion String @db.Text
 
+  // Draft/publicada: una estrategia nueva se crea oculta (createStrategy la
+  // pone en false explícitamente) para que un admin pueda revisarla antes
+  // de que la vea el resto. @default(true) es a propósito: así, al añadir
+  // este campo, las estrategias ya existentes (las 7 del seed, ya públicas)
+  // no desaparecen de golpe — solo afecta a las que se creen a partir de
+  // ahora.
+  visible Boolean @default(true)
+
   // Null en las estrategias iniciales del seed (no las creó un usuario
   // concreto) — a diferencia de Alert/Invitation, aquí null no significa
   // "el creador se borró", así que la UI lo trata distinto ("Estrategia

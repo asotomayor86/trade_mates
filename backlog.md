@@ -56,6 +56,12 @@ el propio código para el detalle de cada fase ya construida.
   TradingView, niveles de take profit/stop loss, descripción de cómo fue,
   y código Pine Script opcional — mismas mecánicas ya probadas en Alertas
   (Blob, permisos creador-o-admin para borrar).
+- **Playbook — revisión antes de publicar** — una estrategia nueva nace
+  oculta; el admin la revisa en su página de detalle y decide cuándo
+  publicarla. Mientras está oculta, el resto de usuarios no la ve en
+  ningún sitio (ni en el listado, ni por enlace directo, ni pueden
+  añadirle verificaciones) — solo el admin la ve, marcada con una
+  insignia "Oculta" y por delante de las ya publicadas.
 - Logo e identidad de marca (trademates) en cabecera, login y favicon.
 - Desplegado en producción: https://trade-mates.vercel.app
 

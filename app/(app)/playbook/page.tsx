@@ -12,7 +12,10 @@ export default async function PlaybookPage() {
   const isAdmin = session.user.role === "ADMIN";
 
   const strategies = await prisma.strategy.findMany({
-    orderBy: { createdAt: "asc" },
+    // Los usuarios normales solo ven las publicadas; un admin las ve todas,
+    // con las ocultas primero (son las que tiene pendientes de revisar).
+    where: isAdmin ? {} : { visible: true },
+    orderBy: [{ visible: "asc" }, { createdAt: "asc" }],
     include: {
       createdBy: { select: { displayName: true } },
       _count: { select: { verifications: true } },
@@ -24,6 +27,7 @@ export default async function PlaybookPage() {
     code: s.code,
     name: s.name,
     resumen: s.resumen,
+    visible: s.visible,
     createdBy: s.createdBy,
     createdAt: s.createdAt,
     verificationCount: s._count.verifications,

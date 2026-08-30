@@ -63,12 +63,24 @@ export async function createStrategy(_prev: string | null, formData: FormData): 
       name: name.data,
       resumen: resumen.data,
       explicacion: explicacion.data,
+      // Nace oculta a propósito: el admin la revisa en su propia página de
+      // detalle y la publica cuando esté conforme (ver setStrategyVisible).
+      visible: false,
       createdById: session.user.id,
     },
   });
 
   revalidatePath("/playbook");
   redirect(`/playbook/${strategy.id}`);
+}
+
+/** Publica u oculta una estrategia — solo admin, es la revisión antes de que la vea el grupo. */
+export async function setStrategyVisible(id: string, visible: boolean) {
+  await requireAdmin();
+
+  await prisma.strategy.update({ where: { id }, data: { visible } });
+  revalidatePath("/playbook");
+  revalidatePath(`/playbook/${id}`);
 }
 
 /** Quien creó la estrategia, o un admin, puede eliminarla (y sus verificaciones, en cascada). */
@@ -105,6 +117,12 @@ export async function createVerification(_prev: string | null, formData: FormDat
   if (typeof strategyId !== "string" || !strategyId) return "Falta la estrategia";
   const strategy = await prisma.strategy.findUnique({ where: { id: strategyId } });
   if (!strategy) return "Estrategia no encontrada";
+  // Refuerzo server-side: una estrategia oculta es "no encontrada" para
+  // quien no sea admin, igual que si no existiera — no solo se oculta en
+  // la UI, tampoco se puede verificar por detrás conociendo el id.
+  if (!strategy.visible && session.user.role !== "ADMIN") {
+    return "Estrategia no encontrada";
+  }
 
   const image = formData.get("image");
   if (!(image instanceof File) || image.size === 0) {
