@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { VerificationCard } from "@/components/playbook/verification-card";
+import { VerificationRow } from "@/components/playbook/verification-row";
 import { DeleteStrategyButton } from "@/components/playbook/delete-strategy-button";
 import { StrategyVisibilityToggle } from "@/components/playbook/strategy-visibility-toggle";
 import { shortDateTime } from "@/lib/format-date";
@@ -21,9 +21,12 @@ export default async function StrategyDetailPage(props: PageProps<"/playbook/[id
     where: { id },
     include: {
       createdBy: { select: { id: true, displayName: true } },
+      // Solo lo que pinta VerificationRow (fila compacta, sin imágenes ni
+      // descripción) — el resto se carga aparte en la página propia de
+      // cada verificación.
       verifications: {
         orderBy: { createdAt: "desc" },
-        include: { createdBy: { select: { displayName: true } } },
+        select: { id: true, symbol: true, takeProfit: true, stopLoss: true, backtestResult: true },
       },
     },
   });
@@ -87,25 +90,9 @@ export default async function StrategyDetailPage(props: PageProps<"/playbook/[id
           Nadie ha probado esta estrategia todavía. Sé el primero en hacer un backtesting.
         </p>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
           {strategy.verifications.map((v) => (
-            <VerificationCard
-              key={v.id}
-              verification={{
-                id: v.id,
-                imageUrl: v.imageUrl,
-                backtestImageUrl: v.backtestImageUrl,
-                symbol: v.symbol,
-                takeProfit: v.takeProfit,
-                stopLoss: v.stopLoss,
-                backtestResult: v.backtestResult,
-                description: v.description,
-                pineScript: v.pineScript,
-                createdAt: v.createdAt,
-                createdBy: v.createdBy,
-                canDelete: v.createdById === session.user.id || isAdmin,
-              }}
-            />
+            <VerificationRow key={v.id} verification={v} strategyId={strategy.id} />
           ))}
         </div>
       )}

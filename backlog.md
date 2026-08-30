@@ -67,6 +67,15 @@ el propio código para el detalle de cada fase ya construida.
   del backtesting, además del gráfico) y un campo obligatorio "Beneficios
   backtesting" (Con beneficios / Neutra / Sin beneficios), con badge de
   color a juego.
+- **Playbook — verificación en fila compacta + página propia** — dentro de
+  una estrategia, cada verificación es ahora una línea (símbolo, TP, SL,
+  resultado, sin imágenes) para poder escanear muchas de un vistazo; al
+  pinchar se abre su propia página, más ancha que el resto del Playbook,
+  con las imágenes a buen tamaño, la descripción completa y el Pine
+  Script.
+- **"Instalar aplicación"** al final del menú (escritorio y móvil):
+  manifest + iconos reales, se deshabilita solo si el navegador ya la
+  tiene instalada (o no ofrece la opción).
 - Logo e identidad de marca (trademates) en cabecera, login y favicon.
 - Desplegado en producción: https://trade-mates.vercel.app
 
@@ -78,7 +87,6 @@ el propio código para el detalle de cada fase ya construida.
   otro usuario" — si alguien la olvida, hoy no hay forma de recuperarla
   salvo tocar la base de datos a mano.
 - Watchlist / selector de varios símbolos en Snapshot (hoy solo S&P 500).
-- Sin manifest/PWA (instalar como app en el móvil).
 - Sin paginación en las tablas de usuarios/invitaciones del panel admin
   (irrelevante mientras el grupo sea pequeño).
 - Playbook: sin edición de una estrategia o verificación ya creada (solo

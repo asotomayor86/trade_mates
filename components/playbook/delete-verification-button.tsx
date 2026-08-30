@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 
 import { deleteVerification } from "@/lib/actions/strategies";
@@ -17,11 +18,18 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-/** Visible para quien creó la verificación o un admin. A diferencia de
- * DeleteStrategyButton, no hace falta navegar tras borrar: se sigue en la
- * misma página de la estrategia, solo desaparece esta verificación de la
- * lista (revalidatePath ya lo refresca). */
-export function DeleteVerificationButton({ verificationId }: { verificationId: string }) {
+/** Visible para quien creó la verificación o un admin. Vive en la página
+ * propia de la verificación (no ya en el listado de la estrategia), así que
+ * tras borrar hay que navegar de vuelta a la estrategia — mismo patrón que
+ * DeleteStrategyButton. */
+export function DeleteVerificationButton({
+  verificationId,
+  strategyId,
+}: {
+  verificationId: string;
+  strategyId: string;
+}) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +38,7 @@ export function DeleteVerificationButton({ verificationId }: { verificationId: s
     startTransition(async () => {
       try {
         await deleteVerification(verificationId);
+        router.push(`/playbook/${strategyId}`);
       } catch (e) {
         setError(e instanceof Error ? e.message : "No se pudo eliminar");
       }

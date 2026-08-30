@@ -59,6 +59,7 @@ trade_mates/
 │   ├── login/
 │   ├── invite/[token]/        # activar cuenta desde una invitación
 │   ├── icon.svg                # favicon (icono circular de marca)
+│   ├── manifest.ts             # Web App Manifest (instalar como PWA)
 │   ├── api/auth/[...nextauth]/route.ts
 │   └── (app)/                  # grupo protegido (requiere sesión)
 │       ├── layout.tsx          # guard de sesión + AppHeader
@@ -71,19 +72,22 @@ trade_mates/
 │       │   ├── page.tsx        # listado de estrategias
 │       │   ├── nueva/          # crear estrategia
 │       │   └── [id]/
-│       │       ├── page.tsx    # detalle (explicación + verificaciones)
-│       │       └── nueva/      # crear una verificación (backtesting)
+│       │       ├── page.tsx           # detalle (explicación + fila por verificación)
+│       │       ├── nueva/             # crear una verificación (backtesting)
+│       │       └── [verificationId]/  # página propia de una verificación (ancha)
 │       └── admin/              # solo ADMIN: invitaciones + usuarios
 ├── components/
 │   ├── app-header.tsx          # cabecera + MobileNav (drawer <640px)
 │   ├── logo.tsx
 │   ├── mobile-nav.tsx
+│   ├── install-app-button.tsx  # "Instalar aplicación" (desktop nav + mobile drawer)
 │   ├── charts/tradingview-widget.tsx
 │   ├── dashboard/snapshot-view.tsx
 │   ├── alerts/                 # alert-form, alert-card, seen-toggle, ...
-│   ├── playbook/                # strategy-form/card, verification-form/card, delete-*
+│   ├── playbook/                # strategy-form/card, verification-form/row/card, delete-*
 │   ├── admin/                  # invitations-manager, users-manager
 │   └── ui/                     # shadcn/ui
+├── public/icons/                # icon-192.png, icon-512.png (para el manifest)
 ├── lib/
 │   ├── prisma.ts               # singleton de PrismaClient
 │   ├── password.ts             # hash/verify, generateInvitationToken
@@ -189,6 +193,22 @@ createdAt   DateTime                   description      String (@db.Text)
   action pero es solo el test disparando el logout. Hay que localizar el
   botón por su texto/rol (`getByRole('button', { name: 'Publicar
   verificación' })`), nunca por el selector genérico.
+- **`.env` local apunta a la MISMA base de datos que producción** (ver
+  "Variables de entorno" más abajo) — cualquier prueba automatizada corre
+  contra datos reales. Esto ya ha causado dos incidentes reales durante
+  verificación con subagentes: (1) un `getByRole` demasiado laxo
+  (`/Eliminar/i`) confundió el diálogo de borrar una *verificación* con el
+  de borrar la *estrategia* entera y se cargó una de las 7 estrategias
+  base (recuperada re-sembrando, pero con un id nuevo — cualquier enlace
+  viejo a esa estrategia ya no sirve); (2) 5 de las 7 estrategias base
+  aparecieron marcadas `visible: false` sin que quedara claro qué acción
+  lo causó (probablemente un admin real explorando el botón nuevo de
+  publicar/ocultar, no un bug). Antes de dar por buena una limpieza de
+  datos de prueba, comprobar SIEMPRE el contenido real de lo que se va a
+  borrar (symbol, imageUrl, createdById...) — no asumir que es "solo
+  prueba" solo porque parece que debería serlo, y usar
+  `getByRole(..., { name: 'texto exacto', exact: true })` en vez de
+  regexes laxas al borrar nada.
 - **Crear una estrategia es solo de admin** (`createStrategy` usa
   `requireAdmin()`, y `/playbook/nueva` redirige si no lo eres) — el
   contenido base del playbook debe quedar curado. Las verificaciones
@@ -208,6 +228,37 @@ createdAt   DateTime                   description      String (@db.Text)
   Un admin sí ve las ocultas, marcadas con una insignia "Oculta", y
   ordenadas antes que las publicadas (son las que tiene pendientes de
   revisar).
+- **Verificaciones: fila compacta en la estrategia + página propia**
+  (`components/playbook/verification-row.tsx` +
+  `app/(app)/playbook/[id]/[verificationId]/page.tsx`): el listado dentro
+  de una estrategia ya no muestra imágenes ni descripción, solo símbolo,
+  TP/SL y el resultado — para escanear muchas verificaciones de un
+  vistazo. El contenido completo (las dos imágenes, descripción, Pine
+  Script, borrar) vive en su propia página, a `max-w-6xl` (más ancha que
+  el resto del Playbook, a `max-w-3xl`) porque ahí lo que importa son los
+  gráficos. La ruta anida el id de la estrategia y el de la verificación
+  (`/playbook/[id]/[verificationId]`, mismo patrón que `/alertas/nueva` +
+  `/alertas/[id]` conviviendo en el mismo nivel) y comprueba que la
+  verificación pertenece de verdad a esa estrategia (404 si no). Borrar
+  ahora navega de vuelta a la estrategia (antes se quedaba en el sitio,
+  porque antes vivía inline en el listado).
+- **"Instalar aplicación" en el menú** (`components/install-app-button.tsx`,
+  `app/manifest.ts`): manifest generado con `MetadataRoute.Manifest`, con
+  dos iconos PNG reales en `public/icons/` (rasterizados del SVG de marca
+  vía Chromium/Playwright, no hay herramienta de imagen en el entorno —
+  un manifest solo con SVG no es fiable en todos los navegadores). El
+  botón captura `beforeinstallprompt` (solo lo disparan Chrome/Edge) y
+  llama a `event.prompt()` al pulsarlo; se deshabilita/pone en gris si la
+  app ya corre en `display-mode: standalone` (o `navigator.standalone` en
+  iOS) o si el navegador nunca ofrece el evento (Safari/Firefox) — en
+  ambos casos no hay nada que hacer al pulsar, así que visualmente es el
+  mismo estado. El estado inicial de `installed` usa un inicializador
+  perezoso de `useState` (no un `setState` suelto dentro de un efecto,
+  otra vez la regla `react-hooks/set-state-in-effect` — mismo patrón que
+  el modo Lista por defecto en móvil de Alertas) — es seguro porque
+  `disabled` ya es `true` en el primer render pase lo que pase con
+  `installed` (al arrancar `installEvent` siempre es `null`), así que no
+  hay desajuste de hidratación entre servidor y cliente.
 - **`Strategy.createdById` null no significa lo mismo que en Alert/
   Invitation** — ahí null pasa a significar "se borró quien la creó"; en
   Strategy puede significar eso, pero las 7 iniciales del seed nunca

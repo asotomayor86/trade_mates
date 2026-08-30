@@ -6,6 +6,7 @@ import type { BacktestResultValue } from "@/lib/strategy-options";
 
 export type VerificationCardData = {
   id: string;
+  strategyId: string;
   imageUrl: string;
   backtestImageUrl: string | null;
   symbol: string;
@@ -19,6 +20,10 @@ export type VerificationCardData = {
   canDelete: boolean;
 };
 
+/** Contenido completo de una verificación — vive en su propia página
+ * (app/(app)/playbook/[id]/[verificationId]/page.tsx), a todo el ancho que
+ * le deje esa página. El listado de la estrategia solo enlaza aquí; ver
+ * VerificationRow para la fila compacta. */
 export function VerificationCard({ verification }: { verification: VerificationCardData }) {
   return (
     <Card className="gap-0 overflow-hidden p-0">
@@ -28,13 +33,13 @@ export function VerificationCard({ verification }: { verification: VerificationC
           <img
             src={verification.imageUrl}
             alt="Captura del gráfico"
-            className="h-56 w-full border-b border-[var(--borde)] object-contain sm:border-r sm:border-b-0"
+            className="h-80 w-full border-b border-[var(--borde)] object-contain sm:border-r sm:border-b-0"
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={verification.backtestImageUrl}
             alt="Captura de resultados del backtesting"
-            className="h-56 w-full object-contain"
+            className="h-80 w-full object-contain"
           />
         </div>
       ) : (
@@ -75,7 +80,10 @@ export function VerificationCard({ verification }: { verification: VerificationC
 
         {verification.canDelete && (
           <div className="flex justify-end border-t border-[var(--borde)] pt-3">
-            <DeleteVerificationButton verificationId={verification.id} />
+            <DeleteVerificationButton
+              verificationId={verification.id}
+              strategyId={verification.strategyId}
+            />
           </div>
         )}
       </div>

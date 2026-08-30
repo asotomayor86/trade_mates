@@ -4,6 +4,7 @@ import { logout } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { MobileNav } from "@/components/mobile-nav";
+import { InstallAppButton } from "@/components/install-app-button";
 
 const enlaces = [
   { href: "/dashboard", label: "Snapshot" },
@@ -46,6 +47,7 @@ export function AppHeader({
               {item.label}
             </Link>
           ))}
+          <InstallAppButton variant="desktop" />
         </nav>
 
         <div className="ml-auto hidden translate-y-[5px] items-center gap-3 sm:flex">

@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react";
 
 import { logout } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
+import { InstallAppButton } from "@/components/install-app-button";
 
 /**
  * Menú desplegable para móvil: sustituye los enlaces/usuario/logout de la
@@ -46,6 +47,7 @@ export function MobileNav({
               {item.label}
             </Link>
           ))}
+          <InstallAppButton variant="mobile" onAfterAction={() => setOpen(false)} />
           <div className="mt-1 flex items-center justify-between gap-3 border-t border-[var(--borde)] px-3 pt-3">
             <span className="truncate text-sm text-muted-foreground">
               {displayName}
