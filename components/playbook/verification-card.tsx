@@ -28,18 +28,21 @@ export function VerificationCard({ verification }: { verification: VerificationC
   return (
     <Card className="gap-0 overflow-hidden p-0">
       {verification.backtestImageUrl ? (
-        <div className="grid grid-cols-1 border-b border-[var(--borde)] sm:grid-cols-2">
+        // Una encima de la otra, cada una a todo el ancho de la página —
+        // sin grid a dos columnas ni límite de alto: cada gráfico se ve a
+        // su tamaño natural, no encajado en una caja pequeña.
+        <div className="flex flex-col">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={verification.imageUrl}
             alt="Captura del gráfico"
-            className="h-80 w-full border-b border-[var(--borde)] object-contain sm:border-r sm:border-b-0"
+            className="w-full border-b border-[var(--borde)] object-contain"
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={verification.backtestImageUrl}
             alt="Captura de resultados del backtesting"
-            className="h-80 w-full object-contain"
+            className="w-full border-b border-[var(--borde)] object-contain"
           />
         </div>
       ) : (
