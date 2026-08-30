@@ -341,6 +341,37 @@ createdAt   DateTime                   description      String (@db.Text)
      la cabecera se queda mostrando el nombre viejo hasta la próxima
      navegación manual. Verificado con Playwright: sin `router.refresh()`
      el test se queda esperando el nombre nuevo y hace timeout.
+- **Página de bienvenida (`app/(app)/page.tsx`) sustituye al antiguo
+  `app/page.tsx`** — un route group (`(app)`) puede tener su propio
+  `page.tsx` mapeado a `/` conviviendo con `dashboard/page.tsx` mapeado a
+  `/dashboard`, así que la nueva página de bienvenida hereda el header/nav
+  del layout del grupo sin necesitar un redirect. El antiguo
+  `app/page.tsx` (fuera del grupo, solo hacía `redirect("/dashboard")`) se
+  ha borrado — si vuelve a hacer falta un redirect puro, tendría que vivir
+  fuera del grupo otra vez, pero entonces no llevaría cabecera.
+- **`<Button nativeButton={false} render={<Link .../>} />` (Base UI) fuerza
+  `role="button"` en el elemento renderizado, aunque por debajo sea un
+  `<a>`** — un script de Playwright que grababa el vídeo de la página de
+  bienvenida usaba `getByRole('link', {name: 'Nueva alerta'})` (así es como
+  se ve el elemento a simple vista, un enlace) y no lo encontraba nunca;
+  hacía falta `getByRole('button', ...)`. Mismo patrón ya se usa en
+  `alerts-view.tsx` para "Nueva alerta" y en Playbook — cualquier test que
+  interactúe con esos botones-que-son-enlaces necesita buscarlos como
+  "button", no como "link".
+- **El vídeo de la página de bienvenida (`public/docs/snapshot-a-alerta.webm`)
+  se grabó con Playwright contra producción, no con una maqueta** — usando
+  `context.recordVideo` mientras un script real hacía login, ajustaba
+  Snapshot, subía su propia captura a una Alerta y la publicaba de verdad.
+  Como el `.env` local no tiene `BLOB_READ_WRITE_TOKEN`, la subida de
+  imagen solo funciona contra la URL desplegada, así que la grabación tuvo
+  que apuntar a `https://trade-mates.vercel.app`, no a `localhost`. La
+  alerta de demo (símbolo "Bitcoin (demo)", comentario marcado como
+  ejemplo) se borró justo después de grabar — comprobado con una consulta
+  directa a la base de datos, no solo confiando en el propio borrado. No
+  hay `ffmpeg` en el entorno, así que no hubo forma de recortar el vídeo ni
+  convertirlo a GIF; se ajustó la duración a mano con los tiempos de espera
+  del propio script, y se sirve tal cual como `.webm` (autoplay+loop+muted,
+  el reemplazo moderno de un GIF: mismo efecto, bastante menos peso).
 - **El diálogo de cambiar nombre vive dentro del panel desplegable móvil
   (`components/mobile-nav.tsx`) — no se puede desmontar ese panel al abrir
   el diálogo.** Cerrar el menú móvil (para que no se vea detrás del overlay)

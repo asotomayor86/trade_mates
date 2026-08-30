@@ -8,6 +8,7 @@ import { InstallAppButton } from "@/components/install-app-button";
 import { EditDisplayNameButton } from "@/components/edit-display-name-button";
 
 const enlaces = [
+  { href: "/", label: "Inicio" },
   { href: "/dashboard", label: "Snapshot" },
   { href: "/alertas", label: "Alertas" },
   { href: "/playbook", label: "Playbook" },
